@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout | Asif Books &amp; Uniform</title>
+  <meta name="description" content="Checkout.">
+  <meta name="theme-color" content="#040817">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500..800&family=Figtree:wght@400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/store.css">
+  <script type="speculationrules">{"prefetch": [{"where": {"href_matches": "/*"}, "eagerness": "moderate"}]}</script>
+</head>
+<body data-page="checkout">
+  <div id="site-header"></div>
+  <main>
+    <section class="page-head"><div class="page-head__img"><img class="img-fade" src="https://images.unsplash.com/photo-1781629784120-3c0cc98b233f?auto=format&amp;fit=crop&amp;q=70&amp;w=1600" srcset="https://images.unsplash.com/photo-1781629784120-3c0cc98b233f?auto=format&amp;fit=crop&amp;q=70&amp;w=800 800w, https://images.unsplash.com/photo-1781629784120-3c0cc98b233f?auto=format&amp;fit=crop&amp;q=70&amp;w=1600 1600w, https://images.unsplash.com/photo-1781629784120-3c0cc98b233f?auto=format&amp;fit=crop&amp;q=70&amp;w=2400 2400w" sizes="100vw" alt="" loading="lazy" decoding="async"></div><div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><a href="cart.html">Cart</a><span>Checkout</span></nav>
+      <h1 class="wsplit">Checkout</h1>
+      <p>No online payment needed. We confirm every order by phone or WhatsApp before dispatch.</p>
+    </div></section>
+    <div class="wrap checkout">
+      <div>
+        <ol class="stepper"><li class="is-on"><span>Contact</span></li><li><span>Delivery</span></li><li><span>Payment</span></li></ol>
+        <form id="co-form" novalidate>
+          <section class="panel">
+            <h3>Contact details</h3>
+            <div class="form-grid">
+              <label class="field"><span>Full name</span><input class="input" name="name" autocomplete="name"><em class="field__err"></em></label>
+              <label class="field"><span>Mobile number</span><input class="input" name="phone" type="tel" inputmode="tel" placeholder="0300 1234567" autocomplete="tel"><em class="field__err"></em></label>
+              <label class="field full"><span>Email (optional, for your receipt)</span><input class="input" name="email" type="email" autocomplete="email"></label>
+            </div>
+          </section>
+          <section class="panel">
+            <h3>Delivery or pickup</h3>
+            <div class="radio-cards radio-cards--2">
+              <label class="rcard"><input type="radio" name="method" value="delivery" checked><span><strong>Home delivery</strong><small>Anywhere in Karachi</small></span><span class="rcard__price" id="ship-price">Rs 250</span></label>
+              <label class="rcard"><input type="radio" name="method" value="pickup"><span><strong>Store pickup</strong><small>Gulshan-e-Iqbal, ready in 4 to 6 hours</small></span><span class="rcard__price">Free</span></label>
+            </div>
+            <div class="collapse" id="addr-fields"><div>
+              <div class="form-grid" style="margin-top:18px">
+                <label class="field full"><span>Address</span><input class="input" name="address" placeholder="House no., street, block" autocomplete="street-address"><em class="field__err"></em></label>
+                <label class="field"><span>Area</span><select class="select" name="area" id="area-sel"></select><em class="field__err"></em></label>
+                <label class="field"><span>Nearest landmark (optional)</span><input class="input" name="landmark"></label>
+              </div>
+              <p class="note" id="co-eta" style="margin-top:10px"></p>
+              <p style="font-weight:700;margin:18px 0 10px">Delivery time</p>
+              <div class="radio-cards radio-cards--4" id="slots"></div>
+            </div></div>
+          </section>
+          <section class="panel">
+            <h3>Payment</h3>
+            <div class="radio-cards">
+              <label class="rcard"><input type="radio" name="pay" value="cod" checked><span><strong>Cash on delivery or at pickup</strong><small>Pay when you receive the order</small></span></label>
+              <label class="rcard"><input type="radio" name="pay" value="jazz"><span><strong>JazzCash</strong><small>Mobile account transfer</small></span></label>
+              <label class="rcard"><input type="radio" name="pay" value="easy"><span><strong>Easypaisa</strong><small>Mobile account transfer</small></span></label>
+              <label class="rcard"><input type="radio" name="pay" value="bank"><span><strong>Bank transfer</strong><small>IBFT to our business account</small></span></label>
+            </div>
+            <div class="collapse is-closed"><div><p class="pay-detail" data-for="jazz">After you place the order we'll WhatsApp you the JazzCash account number. Send a screenshot of the payment to confirm.</p></div></div>
+            <div class="collapse is-closed"><div><p class="pay-detail" data-for="easy">After you place the order we'll WhatsApp you the Easypaisa account number. Send a screenshot of the payment to confirm.</p></div></div>
+            <div class="collapse is-closed"><div><p class="pay-detail" data-for="bank">Our bank details are sent with the order confirmation. Orders are packed once the transfer shows in our account.</p></div></div>
+            <label class="field" style="margin-top:18px"><span>Order notes (optional)</span><textarea class="textarea" name="notes" placeholder="Child's name for labels, section, anything we should know"></textarea></label>
+            <label class="check" style="margin-top:16px"><input type="checkbox" id="save-details" checked>Save my details on this device for next time</label>
+          </section>
+        </form>
+      </div>
+      <aside class="summary" id="co-summary"></aside>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+</body>
+</html>

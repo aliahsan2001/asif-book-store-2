@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your account | Asif Books &amp; Uniform</title>
+  <meta name="description" content="Your orders, children and saved details.">
+  <meta name="theme-color" content="#040817">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500..800&family=Figtree:wght@400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/store.css">
+  <script type="speculationrules">{"prefetch": [{"where": {"href_matches": "/*"}, "eagerness": "moderate"}]}</script>
+</head>
+<body data-page="account">
+  <div id="site-header"></div>
+  <main>
+    <section class="page-head"><div class="page-head__img"><img class="img-fade" src="https://images.unsplash.com/photo-1709282960420-93fdc7b516cd?auto=format&amp;fit=crop&amp;q=70&amp;w=1800" srcset="https://images.unsplash.com/photo-1709282960420-93fdc7b516cd?auto=format&amp;fit=crop&amp;q=70&amp;w=900 900w, https://images.unsplash.com/photo-1709282960420-93fdc7b516cd?auto=format&amp;fit=crop&amp;q=70&amp;w=1800 1800w, https://images.unsplash.com/photo-1709282960420-93fdc7b516cd?auto=format&amp;fit=crop&amp;q=70&amp;w=2400 2400w" sizes="100vw" alt="" loading="lazy" decoding="async"></div><div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Account</span></nav>
+      <h1 id="acc-hello">Your account</h1><p>Orders, children's school lists and delivery details, all in one place.</p>
+    </div></section>
+    <div class="wrap account">
+      <nav class="acc-nav" id="acc-nav" role="tablist" aria-label="Account sections">
+        <button role="tab" data-acc="orders"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9"/></svg>Orders</button>
+        <button role="tab" data-acc="children"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="6" r="3"/><path d="M8 21v-6l-2-4h12l-2 4v6M10 21v-4h4v4"/></svg>Children and lists</button>
+        <button role="tab" data-acc="details"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Your details</button>
+        <button role="tab" data-acc="saved"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Saved items</button>
+      </nav>
+      <div id="acc-out"></div>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+</body>
+</html>

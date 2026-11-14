@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop | Asif Books &amp; Uniform</title>
+  <meta name="description" content="Shop textbooks, school uniforms, stationery and bags from Asif Books &amp; Uniform, Gulshan-e-Iqbal, Karachi.">
+  <meta name="theme-color" content="#040817">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500..800&family=Figtree:wght@400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/store.css">
+  <script type="speculationrules">{"prefetch": [{"where": {"href_matches": "/*"}, "eagerness": "moderate"}]}</script>
+</head>
+<body data-page="shop">
+  <div id="site-header"></div>
+  <main>
+    <section class="page-head"><div class="page-head__img"><img class="img-fade" src="https://images.unsplash.com/photo-1709282960420-93fdc7b516cd?auto=format&amp;fit=crop&amp;q=70&amp;w=1600" srcset="https://images.unsplash.com/photo-1709282960420-93fdc7b516cd?auto=format&amp;fit=crop&amp;q=70&amp;w=800 800w, https://images.unsplash.com/photo-1709282960420-93fdc7b516cd?auto=format&amp;fit=crop&amp;q=70&amp;w=1600 1600w, https://images.unsplash.com/photo-1709282960420-93fdc7b516cd?auto=format&amp;fit=crop&amp;q=70&amp;w=2400 2400w" sizes="100vw" alt="" loading="lazy" decoding="async"></div><div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Shop</span></nav>
+      <h1 id="shop-title" class="wsplit">Shop everything</h1>
+      <p>Textbooks, uniforms, stationery and bags, all from our Gulshan-e-Iqbal store.</p>
+    </div></section>
+    <div class="wrap shop">
+      <aside class="filters" id="filters" aria-label="Filters">
+        <div class="filter-head"><h3>Filters</h3><button class="icon-btn" id="filter-close" aria-label="Close filters"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+        <div><h4>Department</h4><div class="opt-list" id="f-cat"></div></div>
+        <div id="fl-class-wrap"><h4>Class <small>(textbooks)</small></h4><div class="chips" id="fl-class"></div></div>
+        <div id="fl-school-wrap"><h4>School <small>(uniforms)</small></h4><div class="chips" id="fl-school"></div></div>
+        <div class="range"><h4>Price</h4><input type="range" id="f-max" min="200" step="100" aria-label="Maximum price"><div class="range__vals"><span>Rs 200</span><span id="f-max-val"></span></div></div>
+        <div><label class="opt"><span><input type="checkbox" id="f-sale">On offer only</span></label></div>
+      </aside>
+      <section aria-live="polite">
+        <div class="shop__bar">
+          <button class="btn btn--ghost btn--sm filter-toggle" id="filter-toggle"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16l-6 8v6l-4-2v-4z"/></svg>Filters</button>
+          <span class="count" id="shop-count"></span>
+          <label><span class="sr-only">Sort by</span><select class="select" id="sort">
+            <option value="popular">Most popular</option><option value="low">Price, low to high</option>
+            <option value="high">Price, high to low</option><option value="name">Name, A to Z</option></select></label>
+        </div>
+        <div class="active-filters" id="active"></div>
+        <div id="results"></div>
+      </section>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+</body>
+</html>

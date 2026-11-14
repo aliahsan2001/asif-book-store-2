@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Track an order | Asif Books &amp; Uniform</title>
+  <meta name="description" content="Track your Asif Books &amp; Uniform order.">
+  <meta name="theme-color" content="#040817">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500..800&family=Figtree:wght@400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/store.css">
+  <script type="speculationrules">{"prefetch": [{"where": {"href_matches": "/*"}, "eagerness": "moderate"}]}</script>
+</head>
+<body data-page="track">
+  <div id="site-header"></div>
+  <main>
+    <section class="page-head"><div class="page-head__img"><img class="img-fade" src="https://images.unsplash.com/photo-1781629784120-3c0cc98b233f?auto=format&amp;fit=crop&amp;q=70&amp;w=1600" srcset="https://images.unsplash.com/photo-1781629784120-3c0cc98b233f?auto=format&amp;fit=crop&amp;q=70&amp;w=800 800w, https://images.unsplash.com/photo-1781629784120-3c0cc98b233f?auto=format&amp;fit=crop&amp;q=70&amp;w=1600 1600w, https://images.unsplash.com/photo-1781629784120-3c0cc98b233f?auto=format&amp;fit=crop&amp;q=70&amp;w=2400 2400w" sizes="100vw" alt="" loading="lazy" decoding="async"></div><div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Track an order</span></nav>
+      <h1 class="wsplit">Track an order</h1>
+      <p>Enter the order number from your confirmation to see where it is.</p>
+    </div></section>
+    <div class="wrap" style="max-width:760px;padding-top:40px;padding-bottom:100px">
+      <form class="lister__pick" id="track-form" style="grid-template-columns:1fr auto">
+        <label class="field"><span>Order number</span><input class="input" id="track-no" placeholder="AB-123456" autocomplete="off"></label>
+        <button class="btn btn--dark" type="submit"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Track</button>
+      </form>
+      <p class="note" id="track-recent"></p>
+      <div id="track-out"></div>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+</body>
+</html>
