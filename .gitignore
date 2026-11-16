@@ -1,9 +1,0 @@
-.claude/
-.vercel/
-.env
-.env.*
-!.env.example
-node_modules/
-__pycache__/
-.DS_Store
-Thumbs.db
