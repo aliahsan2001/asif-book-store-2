@@ -180,6 +180,61 @@ SCHOOLS.forEach((sc) => {
   });
 });
 
+/* Novels and story books. Demo stock (well-known classics) and demo prices: replace with the shop's real titles. */
+const NOVELS = [
+  { id: "nv-pride", title: "Pride and Prejudice", author: "Jane Austen", price: 850, tint: "#7a1f2b" },
+  { id: "nv-treasure", title: "Treasure Island", author: "Robert Louis Stevenson", price: 750, tint: "#1f4d3a" },
+  { id: "nv-alice", title: "Alice's Adventures in Wonderland", author: "Lewis Carroll", price: 700, tint: "#2c4f8a" },
+  { id: "nv-garden", title: "The Secret Garden", author: "Frances Hodgson Burnett", price: 780, tint: "#3d6b2f" },
+  { id: "nv-women", title: "Little Women", author: "Louisa May Alcott", price: 890, tint: "#8a4b2c" },
+  { id: "nv-oliver", title: "Oliver Twist", author: "Charles Dickens", price: 950, tint: "#3a3a52" },
+  { id: "nv-eighty", title: "Around the World in Eighty Days", author: "Jules Verne", price: 820, tint: "#a86a14" },
+  { id: "nv-beauty", title: "Black Beauty", author: "Anna Sewell", price: 690, tint: "#23232e" },
+];
+NOVELS.forEach((n) => PRODUCTS.push({ ...n, name: n.title, type: "novel", cat: "novels", art: "novel", sub: n.author,
+  desc: `${n.title} by ${n.author}. A paperback edition for young readers, home shelves and school libraries.`,
+  specs: { Author: n.author, Format: "Paperback", Language: "English" } }));
+
+/* Product photographs. Stock photos from Unsplash (free licence) that stand in for the real
+   items, and Open Library cover scans for the novels. They make the catalogue look real for
+   now; replace each with a photo of the shop's actual stock before launch.
+   Products with no fair stock match (name labels, cover roll, skirt, shalwar kameez) keep their drawn artwork. */
+const PRODUCT_PHOTOS = {
+  "nb-single-80": "1710625040193-79a7728d7677", "nb-single-200": "1772408195534-8a080196dd51", "nb-four-80": "1695131020187-d3dcdab5016b",
+  "nb-math-120": "1787640619073-3dcb10c316c4", "nb-drawing": "1623697899811-f2403f50685e", "nb-practical": "1612367980327-7454a7276aa7",
+  "st-pencil-12": "1705023290957-e8aa1ffb6d51", "st-gel-10": "1656941599882-808d7b04b86a", "st-eraser-sharp": "1623228639000-3c9f7908dc88",
+  "st-geo": "1645830887841-2542fa41378e", "st-calc": "1574607383077-47ddc2dc51c4", "st-colors-24": "1513542789411-b6a5d4f31634",
+  "st-crayons-16": "1647899240825-8036bc1fdac0", "st-glue": "1640958899960-65fc2f989a5f", "st-pouch": "1606417465691-cd430ee3f624",
+  "st-highlight-5": "1771868421764-a3de7fd9c4c1",
+  "bg-junior": "1726726192148-af52008ff663", "bg-senior": "1553062407-98eeb64c6a62", "bg-trolley": "1670888736179-328b02019a6a",
+  "bg-bottle": "1602143407151-7111542de6e8", "bg-lunch": "1781747835478-a9c3bab5a670", "bg-bottle-kids": "1625708458528-802ec79b1ed8",
+};
+const UNIFORM_PHOTOS = { shirt: "1621773881532-fe65715b5137", trouser: "1601679249486-3e2a903f23ee", sweater: "1611312449297-a69dc9c3987b", tie: "1589756823695-278bc923f962", pe: "1581655353564-df123a1eb820" };
+const SUBJECT_PHOTOS = {
+  eng: "1519682337058-a94d519337bc", gram: "1543165796-5426273eaab3", urdu: "1671461519096-4be7a2597766", math: "1509228468518-180dd4864904",
+  sci: "1554475900-0a0350e3fc7b", sst: "1521295121783-8a321d551ad2", isl: "1609599006353-e629aaabfeae", comp: "1628258334105-2a0b3d6efee1",
+  sindhi: "1591951425328-48c1fe7179cd", art: "1513364776144-60967b0f800f", phy: "1635372722656-389f87a941b7", chem: "1532094349884-543bc11b234d",
+  bio: "1526930382372-67bf22c0fce2", pak: "1787685810134-ef5dfe81e77d",
+};
+const NOVEL_COVERS = { "nv-pride": 14348537, "nv-treasure": 13859660, "nv-alice": 10527843, "nv-garden": 12622062, "nv-women": 8775559, "nv-oliver": 13300802, "nv-eighty": 11531296, "nv-beauty": 5007492 };
+/* the photo for a product, or "" when it has none */
+function photoOf(p, w = 480) {
+  if (!p) return "";
+  if (p.type === "novel") return NOVEL_COVERS[p.id] ? `https://covers.openlibrary.org/b/id/${NOVEL_COVERS[p.id]}-L.jpg` : "";
+  const id = PRODUCT_PHOTOS[p.id] || (p.type === "book" ? SUBJECT_PHOTOS[p.subj] : p.type === "uniform" ? UNIFORM_PHOTOS[p.id.split("-")[2]] : "");
+  return id ? `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&q=70&w=${w}&h=${w}` : "";
+}
+
+/* Home page hero: four scenes the visitor can swipe through. Each is a real photograph with a
+   slow camera move over it. To play a filmed clip instead, add video: "assets/hero-books.mp4"
+   (and optionally poster: "assets/hero-books.jpg") to a scene. */
+const HERO_SLIDES = [
+  { k: "novels", video: "assets/hero/novels.mp4", poster: "assets/hero/novels.jpg", vpos: "56% 50%", mpos: "50% 50%", dur: 7.6, photo: "1681301865120-7c74657dc01a", pos: "50% 55%", kicker: "For every reader", title: "Books & Novels", line: "Classics and story books to read beyond the syllabus.", cta: ["Shop novels", "shop.html?cat=novels"], alt: ["Browse the shelves", "#browse"] },
+  { k: "uniforms", video: "assets/hero/uniforms.mp4", poster: "assets/hero/uniforms.jpg", vpos: "72% 50%", mpos: "70% 50%", dur: 7.6, photo: "1598032895397-b9472444bf93", pos: "50% 50%", kicker: "Stitched to school spec", title: "Uniforms", line: "Each school's colour, fabric and embroidered crest.", cta: ["Find your uniform", "uniforms.html"], alt: ["Build the full uniform", "uniforms.html#u-build"] },
+  { k: "stationery", video: "assets/hero/stationery.mp4", poster: "assets/hero/stationery.jpg", vpos: "82% 50%", mpos: "80% 50%", dur: 9.6, photo: "1761045736883-57e953e0c5e4", pos: "50% 50%", kicker: "Ready for day one", title: "Stationery", line: "Registers, geometry boxes, colours and everything in between.", cta: ["Shop stationery", "shop.html?cat=stationery"], alt: ["Bags and bottles", "shop.html?cat=bags"] },
+  { k: "books", video: "assets/hero/textbooks.mp4", poster: "assets/hero/textbooks.jpg", vpos: "74% 50%", mpos: "70% 50%", dur: 7.6, photo: "1565022536102-f7645c84354a", pos: "50% 60%", kicker: "Session 2026–27", title: "Textbooks", line: "Every title on your school's list, in the right edition.", cta: ["Shop textbooks", "shop.html?cat=books"], alt: ["Build my school kit", "#kit-start"] },
+];
+
 /* In-store service added from the school list builder; hidden from the shop grid */
 PRODUCTS.push({ id: "sv-cover", type: "service", cat: "service", name: "Book covering service", price: 40, art: "roll", tint: "#9bd3f2", desc: "Clear plastic covering applied in-store before packing.", specs: { Service: "Per book" } });
 

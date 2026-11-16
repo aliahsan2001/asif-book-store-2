@@ -10,37 +10,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://images.unsplash.com">
-  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500..800&family=Figtree:wght@400..800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500..800&family=Figtree:wght@400..800&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/store.css">
   <script type="speculationrules">{"prefetch": [{"where": {"href_matches": "/*"}, "eagerness": "moderate"}]}</script>
 </head>
 <body data-page="home">
+  <script>(function(){try{var d=document,h=d.documentElement;if(d.body.dataset.page!=="home"||matchMedia("(prefers-reduced-motion: reduce)").matches||(!/[?&]intro=1/.test(location.search)&&sessionStorage.getItem("asif_intro")))return;h.classList.add("intro-on");setTimeout(function(){h.classList.remove("intro-on")},7000)}catch(e){}})()</script>
   <div id="site-header"></div>
   <main>
-    <section class="hero">
-      <div class="hero__photo"><img class="img-fade" src="https://images.unsplash.com/photo-1764337482439-ae67981bff34?auto=format&amp;fit=crop&amp;q=70&amp;w=1600" srcset="https://images.unsplash.com/photo-1764337482439-ae67981bff34?auto=format&amp;fit=crop&amp;q=70&amp;w=800 800w, https://images.unsplash.com/photo-1764337482439-ae67981bff34?auto=format&amp;fit=crop&amp;q=70&amp;w=1600 1600w, https://images.unsplash.com/photo-1764337482439-ae67981bff34?auto=format&amp;fit=crop&amp;q=70&amp;w=2400 2400w" sizes="100vw" alt="" loading="eager" fetchpriority="high" decoding="async"></div>
-      <div class="hero__mesh" aria-hidden="true"></div>
-      <div class="hero__floor" aria-hidden="true"></div>
-      <div class="wrap">
-        <div class="hero__copy">
-          <p class="hero__tag"><span>2026–27</span>New session book lists are in</p>
-          <h1 class="wsplit">Everything on the school list, in one order.</h1>
-          <p class="hero__lead">Textbooks, registers, uniforms and stationery for Gulshan-e-Iqbal schools. Pick your school and class, and we pack, cover and label the lot.</p>
-          <div class="hero__ctas"><a class="btn btn--primary" href="#kit-start"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2"/></svg>Build my school kit</a><a class="btn btn--glass" href="shop.html">Browse the shop</a></div>
-          <div class="hero__trust"><span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Playgroup to Matric</span><span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Books covered in store</span><span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Cash on delivery</span></div>
-        </div>
-        <div class="scene" id="scene" aria-hidden="true">
-          <div class="scene__rig">
-            <div class="float f1"><div class="bob" style="--d:7s"><div data-scene-book="bk-math-5"></div></div></div>
-            <div class="float f2"><div class="bob" style="--d:8.5s"><div data-scene-book="bk-eng-5"></div></div></div>
-            <div class="float f3"><div class="bob" style="--d:6.4s"><div data-scene-book="bk-sci-5"></div></div></div>
-            <div class="float f4"><div class="bob glass" style="--d:7.6s"><span class="glass__art" data-scene-art="un-ggs-shirt"></span><span><b>School uniforms</b><small>Stitched to each school's spec</small></span></div></div>
-            <div class="float f5"><div class="bob glass glass--total" style="--d:9s"><small>School book lists</small><b>Playgroup to Matric</b><small>Textbooks, copies and stationery</small></div></div>
-            <div class="float f6"><div class="bob glass glass--tag" style="--d:6.8s"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Covered and labelled in store</div></div>
-            <div class="float f7"><div class="bob" style="--d:8s"><span class="scene__art" data-scene-art="st-geo"></span></div></div>
-          </div>
-        </div>
+    <section class="cine" id="hero" aria-roledescription="carousel" aria-label="Books, uniforms, stationery and novels">
+      <h1 class="sr-only">Asif Books &amp; Uniform: school books, uniforms, stationery and novels in Gulshan-e-Iqbal, Karachi</h1>
+      <div class="cine__slides" id="cine-slides"></div>
+      <div class="cine__ui wrap">
+        <button class="cine__arrow" type="button" data-cine="-1" aria-label="Previous scene"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <div class="cine__dots" id="cine-dots" role="tablist" aria-label="Choose a scene"></div>
+        <button class="cine__arrow" type="button" data-cine="1" aria-label="Next scene"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button class="cine__pause" type="button" data-cine-pause aria-label="Pause the scenes" aria-pressed="false"><span></span></button>
+        <span class="cine__hint">Swipe or use the arrows</span>
       </div>
+      <ul class="cine__trust wrap"><li><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Playgroup to Matric</li><li><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Books covered in store</li><li><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Cash on delivery</li><li><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Free delivery over Rs 5,000</li></ul>
     </section>
 
     <section class="section kit-section" id="kit-sec">

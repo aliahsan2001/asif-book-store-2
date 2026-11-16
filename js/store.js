@@ -1,6 +1,7 @@
 /* Asif Books & Uniform — storefront behaviour */
 (() => {
   "use strict";
+  document.documentElement.classList.add("js"); /* photos fade in only when this script is running */
 
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -103,6 +104,7 @@
 
   function cover(p, cls = "", plain = false) {
     if (!plain && BOOK_COVERS[p.id]) return `<div class="cover cover--photo ${cls}"><img src="${esc(BOOK_COVERS[p.id])}" alt="" loading="lazy"></div>`;
+    if (!plain && photoOf(p)) return `<div class="cover cover--photo cover--titled ${cls}"><img src="${photoOf(p)}" alt="" loading="lazy"><span class="cover__title">${esc(p.title || SUBJECTS[p.subj].title)}</span><span class="cover__lvl">${esc(getClass(p.classId).n)}</span></div>`;
     const s = SUBJECTS[p.subj], cl = getClass(p.classId);
     const [a, b, c] = s.c;
     return `<div class="cover${s.dark ? " cover--dark" : ""}${plain ? " cover--plain" : ""} ${cls}" style="--c:${a};--c2:${b};--c3:${c}">
@@ -146,6 +148,17 @@
       trouser: `<path d="M60 26h80l10 152h-38l-12-104-12 104H50z" fill="${F}"/><rect x="60" y="26" width="80" height="14" fill="${d}"/>
         <path d="M100 40v34M76 40l-4 18M124 40l4 18" stroke="${d}" stroke-width="2" fill="none"/><path d="M78 60l-6 116M122 60l6 116" ${stitch}/>
         <rect x="70" y="30" width="6" height="10" fill="${l}"/><rect x="124" y="30" width="6" height="10" fill="${l}"/>`,
+      novel: (() => {
+        const lines = []; let cur = "";
+        (p.title || "").split(" ").forEach((w) => { if (cur && (cur + " " + w).length > 12) { lines.push(cur); cur = w; } else cur = (cur + " " + w).trim(); });
+        if (cur) lines.push(cur);
+        const y0 = 82 - (lines.length - 1) * 7.5;
+        return `<rect x="58" y="24" width="96" height="150" rx="3" fill="#efe6d2"/><path d="M150 26v146" stroke="#d8cdb4" stroke-width="1"/><rect x="50" y="20" width="98" height="152" rx="4" fill="${F}"/><rect x="50" y="20" width="11" height="152" rx="3" fill="${d}"/>
+          <rect x="68" y="32" width="72" height="128" fill="none" stroke="#e7c873" stroke-width="1.4"/><rect x="72" y="36" width="64" height="120" fill="none" stroke="#e7c873" stroke-width=".6"/>
+          ${lines.map((t, i) => `<text x="104" y="${y0 + i * 15}" text-anchor="middle" font-family="Georgia,serif" font-size="${lines.length > 3 ? 9.5 : 10.5}" font-weight="700" fill="#f6e9c6">${esc(t)}</text>`).join("")}
+          <path d="M90 ${y0 + lines.length * 15 - 4}h28" stroke="#e7c873" stroke-width="1"/>
+          <text x="104" y="148" text-anchor="middle" font-family="Georgia,serif" font-size="6.5" letter-spacing="1.2" fill="#f6e9c6">${esc((p.author || "").split(" ").pop().toUpperCase())}</text>`;
+      })(),
       skirt: `<path d="M66 38h68l4 14H62z" fill="${d}"/><path d="M62 52h76l26 128H36z" fill="${F}" ${st}/>
         ${[58, 76, 94, 112, 130, 148].map((x, i) => `<path d="M${76 + i * 9.6} 52 ${x} 180" stroke="${d}" stroke-width="1.4" opacity=".55"/>`).join("")}<path d="M44 168h112" ${stitch}/>`,
       kameez: `<path d="M70 30 88 24q12 14 24 0l18 6 36 30-16 19-12-10 8 109H54l8-109-12 10-16-19z" fill="${F}" ${st}/>
@@ -206,9 +219,12 @@
       <text x="100" y="110" text-anchor="middle" font-family="Figtree,sans-serif" font-weight="800" font-size="28" fill="#fff">${esc(p.crest)}</text></svg>`;
   }
 
-  const art = (p, mode = "flat") => p.type === "book"
-    ? (mode === "3d" ? book3d(p) : cover(p))
-    : `<div class="art">${svgArt(p)}</div>`;
+  const photoTag = (p) => (p.type === "book" ? getClass(p.classId).name : p.type === "uniform" ? getSchool(p.school).short : "");
+  const art = (p, mode = "flat") => {
+    const ph = photoOf(p, mode === "lg" ? 1000 : 480);
+    if (ph) return `<div class="art art--photo${p.type === "novel" ? " art--cover" : ""}"><img src="${ph}" alt="" loading="lazy" decoding="async">${photoTag(p) ? `<span class="art__tag">${esc(photoTag(p))}</span>` : ""}</div>`;
+    return p.type === "book" ? (mode === "3d" ? book3d(p) : cover(p)) : `<div class="art${p.type === "novel" ? " art--novel" : ""}">${svgArt(p)}</div>`;
+  };
 
   /* ---------------------------------------------------- bookcase pieces */
   function spine(p, o = {}) {
@@ -387,7 +403,14 @@
   }
 
   const io = "IntersectionObserver" in window ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }) : null;
-  const reveal = (root = document) => $$(".reveal:not(.in), .wsplit:not(.in)", root).forEach((el) => (io && !reduced ? io.observe(el) : el.classList.add("in")));
+  /* anything already on screen is shown straight away, so a page title never waits on the observer */
+  const reveal = (root = document) => {
+    const els = $$(".reveal:not(.in), .wsplit:not(.in)", root);
+    if (!io || reduced) { els.forEach((el) => el.classList.add("in")); return; }
+    const now = [];
+    els.forEach((el) => { const r = el.getBoundingClientRect(); if (r.width && r.top < innerHeight && r.bottom > 0) now.push(el); io.observe(el); });
+    if (now.length) setTimeout(() => now.forEach((el) => el.classList.add("in")), 40);
+  };
 
   /* ------------------------------------------------------------- chrome */
   const NAV = [
@@ -395,6 +418,7 @@
     ["shop.html?cat=books", "Books", "", "books"],
     ["uniforms.html", "Uniforms", "", "uniforms"],
     ["shop.html?cat=stationery", "Stationery"],
+    ["shop.html?cat=novels", "Novels"],
     ["shop.html?cat=bags", "Bags & bottles"],
     ["shop.html?sale=1", "Offers", "nav__offer"],
     ["about.html", "About us", "", "", true],
@@ -475,7 +499,7 @@
         </div>
         <div><h4>Shop</h4><ul>
           <li><a href="school-lists.html">School book lists</a></li><li><a href="shop.html?cat=books">Textbooks</a></li>
-          <li><a href="uniforms.html">Uniforms</a></li><li><a href="shop.html?cat=stationery">Stationery</a></li><li><a href="shop.html?sale=1">Offers</a></li></ul></div>
+          <li><a href="uniforms.html">Uniforms</a></li><li><a href="shop.html?cat=stationery">Stationery</a></li><li><a href="shop.html?cat=novels">Novels</a></li><li><a href="shop.html?sale=1">Offers</a></li></ul></div>
         <div><h4>Your orders</h4><ul>
           <li><a href="account.html">Your account</a></li><li><a href="track.html">Track an order</a></li>
           <li><a href="wishlist.html">Saved items</a></li><li><a href="cart.html">Cart</a></li></ul></div>
@@ -494,7 +518,12 @@
       </div>
       <div class="footer__mark" aria-hidden="true">Asif Books</div>
     </div></footer>
-    <a class="wa-float" href="https://wa.me/${STORE.whatsapp}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">${icon("wa")}</a>`;
+    <a class="wa-float" href="https://wa.me/${STORE.whatsapp}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">${icon("wa")}</a>
+    <span class="scroll-bar" aria-hidden="true"><i data-scroll-bar></i></span>
+    <nav class="tabbar" aria-label="Quick links">
+      ${[["index.html", "store", "Home", "home"], ["school-lists.html", "list", "Lists", "lists"], ["shop.html", "bag", "Shop", "shop"], ["wishlist.html", "heart", "Saved", "wishlist"]].map(([h, ic, l, pg]) => `<a href="${h}"${page === pg ? ' aria-current="page"' : ""}>${icon(ic)}<span>${l}</span></a>`).join("")}
+      <button type="button" data-open-cart aria-label="Open cart">${icon("cart")}<span>Cart</span><b class="badge" data-count>0</b></button>
+    </nav>`;
   }
 
   function overlays() {
@@ -513,9 +542,13 @@
     const meta = p.type === "book" ? `${p.subject}, ${getClass(p.classId).name}` : p.type === "uniform" ? getSchool(p.school).name : p.sub || (p.type === "bag" ? "Bags & bottles" : "Stationery");
     const flag = p.was ? `<span class="card__flag card__flag--sale">Save ${rs(p.was - p.price)}</span>` : NEW_IN.includes(p.id) ? '<span class="card__flag">New</span>' : "";
     const needsOpt = p.sizes && p.sizes.length > 1;
-    return `<article class="card reveal" style="--tint:${tintOf(p)};--i:${i % 8}">
+    const off = p.was ? Math.round((1 - p.price / p.was) * 100) : 0;
+    const info = p.type === "book" ? "2026\u201327 edition" : p.author ? `By ${p.author}` : needsOpt ? `${p.sizes.length} sizes, ${p.sizes[0]} to ${p.sizes[p.sizes.length - 1]}` : "";
+    const inCart = needsOpt ? 0 : (Cart.items.find((x) => x.k === Cart.key(p.id, "")) || {}).qty || 0;
+    return `<article class="card reveal${inCart ? " in-cart" : ""}"${needsOpt ? "" : ` data-pid="${p.id}"`} style="--tint:${tintOf(p)};--i:${i % 8}">
       <div class="card__media">${flag}
         <div class="card__art" aria-hidden="true">${art(p, "3d")}</div>
+        <span class="card__in">${icon("check")}In cart</span>
         <div class="card__tools">
           <button class="tool" data-save="${p.id}" aria-pressed="${Saved.has(p.id)}" aria-label="Save ${esc(p.name)}">${icon("heart")}</button>
           <button class="tool" data-qv="${p.id}" aria-label="Quick view ${esc(p.name)}">${icon(p.type === "book" ? "open" : "eye")}</button>
@@ -524,11 +557,13 @@
       <div class="card__body">
         <span class="card__meta">${esc(meta)}</span>
         <h3 class="card__title"><a href="product.html?id=${p.id}">${esc(p.name)}</a></h3>
+        ${info ? `<span class="card__info">${esc(info)}</span>` : ""}
         <div class="card__foot">
-          <span class="price">${p.step ? '<small class="price__from">From</small>' : ""}${rs(p.price)}${p.was ? `<s>${rs(p.was)}</s>` : ""}</span>
+          <span class="price">${p.step ? '<small class="price__from">From</small>' : ""}${rs(p.price)}${p.was ? `<s>${rs(p.was)}</s><em class="price__off">${off}% off</em>` : ""}</span>
           ${needsOpt
             ? `<button class="add-btn" data-qv="${p.id}" aria-label="Choose size for ${esc(p.name)}">${icon("ruler")}<span>Size</span></button>`
-            : `<button class="add-btn" data-add="${p.id}" aria-label="Add ${esc(p.name)} to cart">${icon("plus")}<span>Add</span></button>`}
+            : `<button class="add-btn" data-add="${p.id}" aria-label="Add ${esc(p.name)} to cart"${inCart ? " hidden" : ""}>${icon("plus")}<span>Add</span></button>
+          <div class="cqty"${inCart ? "" : " hidden"}><button type="button" data-cdec="${p.id}" aria-label="One less ${esc(p.name)}">&minus;</button><b aria-live="polite">${inCart}</b><button type="button" data-cinc="${p.id}" aria-label="One more ${esc(p.name)}">+</button></div>`}
         </div>
       </div></article>`;
   }
@@ -555,8 +590,8 @@
                <button class="ci__link" data-later="${esc(i.k)}">Save for later</button>`}
           <button class="ci__link ci__link--rm" data-rm="${esc(i.k)}"${later ? " data-later-list" : ""}>Remove</button>
         </div>
+        ${warn}
       </div>
-      ${warn}</div>
       <div class="ci__price">${rs(unit * i.qty)}</div></div>`;
   }
 
@@ -566,7 +601,7 @@
     items.forEach((i) => { const g = i.grp || ""; let G = groups.find((x) => x.g === g); if (!G) groups.push((G = { g, items: [] })); G.items.push(i); });
     if (groups.length === 1 && !groups[0].g) return items.map((i) => lineItem(i)).join("");
     groups.sort((a, b) => (a.g ? 0 : 1) - (b.g ? 0 : 1));
-    return groups.map((G) => `<div class="ci-group"><div class="ci-group__head"><div><strong>${esc(G.g || "Other items")}</strong><small>${qtyOf(G.items)} items · ${rs(G.items.reduce((s, i) => s + priceOf(getProduct(i.id), i.opt) * i.qty, 0))}</small></div>${G.g ? `<button type="button" class="ci__link ci__link--rm" data-rm-grp="${esc(G.g)}">Remove all</button>` : ""}</div>${G.items.map((i) => lineItem(i)).join("")}</div>`).join("");
+    return groups.map((G) => `<div class="ci-group"><div class="ci-group__head"><div><strong>${esc(G.g || "Other items")}</strong><small>${qtyOf(G.items)} ${qtyOf(G.items) === 1 ? "item" : "items"} · ${rs(G.items.reduce((s, i) => s + priceOf(getProduct(i.id), i.opt) * i.qty, 0))}</small></div>${G.g ? `<button type="button" class="ci__link ci__link--rm" data-rm-grp="${esc(G.g)}">Remove all</button>` : ""}</div>${G.items.map((i) => lineItem(i)).join("")}</div>`).join("");
   }
 
   function shipMeter(sub) {
@@ -575,7 +610,19 @@
     return `<div class="ship-meter${left <= 0 ? " ship-meter--done" : ""}">${left > 0 ? `Add <strong>${rs(left)}</strong> more for free delivery in Karachi.` : "Your order qualifies for free delivery."}<div class="ship-meter__bar"><i style="width:${pct}%"></i></div></div>`;
   }
 
+  /* cards show a quantity stepper once their product is in the cart */
+  function syncCards() {
+    $$(".card[data-pid]").forEach((c) => {
+      const it = Cart.items.find((x) => x.k === Cart.key(c.dataset.pid, "")), n = it ? it.qty : 0;
+      c.classList.toggle("in-cart", n > 0);
+      const q = $(".cqty", c), a = $(".add-btn", c);
+      if (!q || !a) return;
+      q.hidden = !n; a.hidden = !!n; $("b", q).textContent = n;
+    });
+  }
+
   function renderCartUI() {
+    syncCards();
     $$("[data-count]").forEach((el) => { el.textContent = Cart.count(); el.style.display = Cart.count() ? "" : "none"; });
     const body = $("[data-drawer-body]"), foot = $("[data-drawer-foot]");
     if (body) {
@@ -671,12 +718,14 @@
     </div>`;
   }
 
-  function quickView(id) {
+  function quickView(id, inside = false) {
     const p = getProduct(id);
     if (!p) return;
     let size = p.sizes && p.sizes.length === 1 ? p.sizes[0] : "";
     const meta = p.type === "book" ? `${p.subject}, ${getClass(p.classId).name}` : p.type === "uniform" ? getSchool(p.school).name : p.sub || "Bags & bottles";
-    const stage = p.type === "book"
+    const stage = photoOf(p) && !inside
+      ? `<div class="qv__stage qv__stage--photo" style="--tint:${tintOf(p)}">${art(p, "lg")}</div>`
+      : p.type === "book"
       ? `<div class="qv__stage" style="--tint:${tintOf(p)}">${openBook(p)}<button class="btn btn--ghost btn--sm qv__flip" data-ob-toggle>${icon("open")}Close the book</button></div>`
       : `<div class="qv__stage" style="--tint:${tintOf(p)}"><div class="qv__art">${svgArt(p)}</div></div>`;
     openModal(`<div class="qv">${stage}
@@ -705,7 +754,7 @@
     }));
     $("[data-qv-add]", box).addEventListener("click", (e) => {
       if (p.sizes && !size) { const er = $("[data-qv-err]", box); er.style.display = "block"; er.animate([{ transform: "translateX(-4px)" }, { transform: "translateX(4px)" }, { transform: "none" }], 300); return; }
-      flyToCart($(".qv__stage .ob__front, .qv__art", box));
+      flyToCart($(".qv__stage .ob__front, .qv__art, .qv__stage .art", box));
       Cart.add(p.id, 1, p.sizes ? size : "");
       const b = e.currentTarget; b.classList.add("is-done"); b.innerHTML = icon("check") + "Added";
       setTimeout(closeModal, 700);
@@ -721,7 +770,7 @@
   function hay(p) {
     if (hayCache.has(p.id)) return hayCache.get(p.id);
     const sc = p.school ? getSchool(p.school) : null, cl = p.classId ? getClass(p.classId) : null;
-    const h = [p.name, p.subject, p.title, p.sub, p.cat, p.type, sc?.name, sc?.short, cl?.name, BOOK_PUBLISHERS[p.subj]].filter(Boolean).join(" ").toLowerCase();
+    const h = [p.name, p.subject, p.title, p.sub, p.author, p.cat, p.type, p.type === "novel" ? "story fiction reading" : "", sc?.name, sc?.short, cl?.name, BOOK_PUBLISHERS[p.subj]].filter(Boolean).join(" ").toLowerCase();
     hayCache.set(p.id, h); return h;
   }
   function searchProducts(q) {
@@ -737,7 +786,7 @@
     return PRODUCTS.filter((p) => p.cat !== "service"
       && (!cls || (p.type === "book" && p.classId === cls))
       && alts.every((g) => g.some((t) => hay(p).includes(t))))
-      .sort((a, b) => (b.type === "book") - (a.type === "book"));
+      .sort((a, b) => (terms.length && cls === "" ? 0 : (b.type === "book") - (a.type === "book")));
   }
 
   /* -------------------------------------------------- search suggestions */
@@ -854,7 +903,7 @@
       lines = kitLines(sid, cid);
       const count = lines.slice(0, 3).reduce((s, l) => s + l.items.reduce((a, i) => a + i.qty, 0), 0);
       const html = `<div class="kit__who"><span class="crest" style="background:${sc.color}">${sc.short}</span><div><strong>${esc(cl.name)} kit</strong><small>${esc(sc.name)} · ${count} items</small></div>
-          <div class="kit__books">${buildList(sid, cid).books.slice(0, 3).map((b) => book3d(getProduct(b.id))).join("")}</div></div>
+          <div class="kit__books">${buildList(sid, cid).books.slice(0, 3).map((b) => `<span class="kit__ph">${art(getProduct(b.id))}</span>`).join("")}</div></div>
         <ul class="kit__lines">${lines.map((l) => `<li><label class="kit__line"><input type="checkbox" data-kl="${l.k}" ${off.has(l.k) ? "" : "checked"}><span><strong>${l.label}</strong><small>${esc(l.sub)}</small></span><b>${rs(l.price)}</b></label></li>`).join("")}</ul>
         <div class="kit__total"><span>Kit total</span><strong class="price" data-kit-total>${rs(shown)}</strong></div>
         <div class="kit__actions"><button class="btn btn--primary btn--block" data-kit-add>${icon("cart")}Add kit to cart</button><a class="text-link" href="school-lists.html?school=${sid}&class=${cid}">Review every title${icon("arrow")}</a></div>`;
@@ -1016,25 +1065,87 @@
     summary();
   }
 
-  /* hero: floating 3D products that lean toward the pointer */
-  function wireScene() {
-    const sc = $("#scene"); if (!sc) return;
-    $$("[data-scene-book]", sc).forEach((el) => (el.outerHTML = book3d(getProduct(el.dataset.sceneBook), "", true)));
-    $$("[data-scene-art]", sc).forEach((el) => (el.innerHTML = svgArt(getProduct(el.dataset.sceneArt))));
-    const hero = sc.closest(".hero");
-    if (io) new IntersectionObserver(([e]) => hero.classList.toggle("is-off", !e.isIntersecting)).observe(hero);
-    if (reduced || !finePointer) return;
-    const rig = $(".scene__rig", sc);
-    let x = 0, y = 0, raf = 0;
-    hero.addEventListener("pointermove", (e) => {
-      x = e.clientX / innerWidth - 0.5; y = e.clientY / innerHeight - 0.5;
-      if (!raf) raf = requestAnimationFrame(() => { raf = 0; rig.style.setProperty("--py", (x * 12).toFixed(2) + "deg"); rig.style.setProperty("--px", (-y * 9).toFixed(2) + "deg"); });
+  /* hero: four real photographs (books, uniforms, stationery, novels), each with a slow
+     film-style camera move. The photo is shown nearly whole; a blurred copy of it fills
+     the space behind the text. Swipe, drag, arrows or the dots change scene. */
+  function wireHero() {
+    const sec = $("#hero"), box = $("#cine-slides"); if (!sec || !box) return;
+    const src = (id, w) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&q=72&w=${w}`;
+    const r = rng(11);
+    const dust = Array.from({ length: 10 }, () => `<i style="left:${(r() * 100).toFixed(1)}%;top:${(15 + r() * 65).toFixed(1)}%;--s:${(2 + r() * 3).toFixed(1)}px;--t:${(10 + r() * 9).toFixed(1)}s;--dl:${(-r() * 10).toFixed(1)}s"></i>`).join("");
+    /* visitors who asked for less motion or less data get the still photographs */
+    const still = reduced || !!(navigator.connection && navigator.connection.saveData);
+    box.innerHTML = HERO_SLIDES.map((sl, i) => `<article class="cslide${i === 0 ? " is-on" : ""}${sl.video && !still ? " cslide--video" : ""}" data-k="${sl.k}" id="cs-${i}" role="tabpanel" aria-roledescription="slide" aria-label="${i + 1} of ${HERO_SLIDES.length}: ${esc(sl.title)}"${i ? " inert" : ""}>
+        <div class="cslide__film">${sl.video && !still
+          ? `${sl.poster ? `<img class="film__bg" src="${esc(sl.poster)}" alt="" decoding="async">` : ""}<video class="film__main" muted loop playsinline disablepictureinpicture aria-hidden="true" tabindex="-1" preload="${i === 0 ? "auto" : "none"}"${sl.poster ? ` poster="${esc(sl.poster)}"` : ""} src="${esc(sl.video)}" style="--pos:${sl.vpos || "60% 50%"};--mpos:${sl.mpos || "60% 50%"}"></video>`
+          : `<img class="film__bg" src="${src(sl.photo, 300)}" alt="" ${i === 0 ? "" : 'loading="lazy"'} decoding="async"><img class="film__main" src="${src(sl.photo, 1600)}" srcset="${src(sl.photo, 800)} 800w, ${src(sl.photo, 1600)} 1600w, ${src(sl.photo, 2400)} 2400w" sizes="(max-width: 860px) 100vw, 70vw" alt="" style="object-position:${sl.pos || "50% 50%"}" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">`}</div>
+        <div class="cslide__light" aria-hidden="true"></div><div class="cslide__dust" aria-hidden="true">${dust}</div>
+        <div class="wrap cslide__grid">
+          <div class="ccard"><p class="ccard__kicker">${esc(sl.kicker)}</p><h2 class="ccard__title">${esc(sl.title)}</h2><p class="ccard__line">${esc(sl.line)}</p>
+            <div class="ccard__ctas"><a class="btn btn--primary" href="${sl.cta[1]}">${esc(sl.cta[0])}</a><a class="btn btn--glass" href="${sl.alt[1]}">${esc(sl.alt[0])}</a></div></div>
+        </div>
+      </article>`).join("");
+    const dots = $("#cine-dots");
+    dots.innerHTML = HERO_SLIDES.map((sl, i) => `<button type="button" role="tab" aria-controls="cs-${i}" aria-selected="${i === 0}" data-cine-go="${i}"${sl.video && !still && sl.dur ? ` style="--dur:${sl.dur}s"` : ""}><span>${esc(sl.title)}</span><i></i></button>`).join("");
+    const slides = $$(".cslide", box), dotBtns = $$("button", dots), n = slides.length;
+    let cur = 0, lock = false;
+    /* only the scene on screen plays; each clip starts from its first frame, and the next one is fetched ahead */
+    const vids = slides.map((sl) => $("video", sl));
+    const canPlay = () => !sec.classList.contains("is-stopped") && !sec.classList.contains("is-off") && !document.hidden;
+    const playVideo = (i, restart = true) => vids.forEach((v, k) => {
+      if (!v) return;
+      if (k !== i || !canPlay()) { v.pause(); return; }
+      if (restart) { try { v.currentTime = 0; } catch (e) { /* not loaded yet */ } }
+      v.play().catch(() => {});
     });
-    hero.addEventListener("pointerleave", () => { rig.style.setProperty("--py", "0deg"); rig.style.setProperty("--px", "0deg"); });
+    const warm = (i) => { const v = vids[(i + 1) % n]; if (v && v.preload === "none") v.preload = "auto"; };
+    if (vids[0]) { let w = false; const first = () => { if (!w) { w = true; warm(0); } }; vids[0].addEventListener("canplaythrough", first, { once: true }); setTimeout(first, 4000); }
+    function go(i, dir) {
+      i = (i + n) % n; if (i === cur || lock) return;
+      lock = true; setTimeout(() => (lock = false), 650);
+      const from = slides[cur], to = slides[i];
+      sec.style.setProperty("--dir", dir);
+      from.classList.remove("is-on"); from.classList.add("is-out"); from.setAttribute("inert", "");
+      to.classList.remove("is-out"); to.removeAttribute("inert");
+      void to.offsetWidth; to.classList.add("is-on");
+      setTimeout(() => from.classList.remove("is-out"), 1300);
+      dotBtns.forEach((b, k) => b.setAttribute("aria-selected", k === i));
+      cur = i; playVideo(i); warm(i);
+    }
+    const step = (d) => go(cur + d, d);
+    playVideo(0);
+    sec.addEventListener("click", (e) => {
+      const a = e.target.closest("[data-cine]"); if (a) { step(Number(a.dataset.cine)); return; }
+      const d = e.target.closest("[data-cine-go]"); if (d) { const i = Number(d.dataset.cineGo); go(i, i > cur ? 1 : -1); return; }
+      const p = e.target.closest("[data-cine-pause]"); if (p) { const on = p.getAttribute("aria-pressed") !== "true"; p.setAttribute("aria-pressed", on); p.setAttribute("aria-label", on ? "Play the scenes" : "Pause the scenes"); sec.classList.toggle("is-stopped", on); playVideo(cur, false); }
+    });
+    /* the active dot fills up; when it's full the next scene comes in. Pausing the CSS pauses the timer too. */
+    dots.addEventListener("animationend", (e) => { if (e.animationName === "cprog") step(1); });
+    sec.addEventListener("keydown", (e) => { if (e.key === "ArrowRight") step(1); else if (e.key === "ArrowLeft") step(-1); });
+    /* swipe with a finger, or drag with the mouse */
+    let sx = 0, sy = 0, dx = 0, drag = false, down = false;
+    sec.addEventListener("pointerdown", (e) => { if (e.target.closest("a, button, input")) return; down = true; drag = false; sx = e.clientX; sy = e.clientY; dx = 0; });
+    sec.addEventListener("pointermove", (e) => {
+      if (!down) return;
+      dx = e.clientX - sx;
+      if (!drag && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(e.clientY - sy)) { drag = true; sec.classList.add("is-dragging"); }
+      if (drag) slides[cur].style.setProperty("--drag", (dx * 0.35).toFixed(0) + "px");
+    });
+    const end = () => {
+      if (!down) return; down = false;
+      slides[cur].style.setProperty("--drag", "0px"); sec.classList.remove("is-dragging");
+      if (drag && Math.abs(dx) > 48) step(dx < 0 ? 1 : -1);
+    };
+    sec.addEventListener("pointerup", end); sec.addEventListener("pointercancel", end); sec.addEventListener("pointerleave", end);
+    sec.addEventListener("dragstart", (e) => e.preventDefault());
+    /* rest while off screen, while the tab is hidden, and while the pointer or keyboard focus is on the text card */
+    if (io) new IntersectionObserver(([e]) => { sec.classList.toggle("is-off", !e.isIntersecting); document.body.classList.toggle("hero-on", e.isIntersecting); playVideo(cur, false); }, { threshold: 0.15 }).observe(sec);
+    document.addEventListener("visibilitychange", () => { sec.classList.toggle("is-hidden", document.hidden); playVideo(cur, false); });
+    sec.addEventListener("focusin", () => sec.classList.add("is-held")); sec.addEventListener("focusout", () => sec.classList.remove("is-held"));
   }
 
   function pageHome() {
-    wireScene();
+    wireHero();
     wireKit();
     wireNames();
     wireExplore();
@@ -1045,9 +1156,9 @@
     const onSale = PRODUCTS.filter((p) => p.was && p.cat !== "service");
     const saleBox = $("[data-offer-sale]");
     if (saleBox && onSale.length) saleBox.textContent = `${onSale.length} items reduced right now, save up to ${rs(Math.max(...onSale.map((p) => p.was - p.price)))}.`;
-    $$("[data-offer-art]").forEach((el) => (el.innerHTML = svgArt(getProduct(el.dataset.offerArt))));
+    $$("[data-offer-art]").forEach((el) => (el.innerHTML = art(getProduct(el.dataset.offerArt), "lg")));
     $$("[data-offer-books]").forEach((el) => (el.innerHTML = ["bk-eng-4", "bk-math-5", "bk-sci-7"].map((id) => book3d(getProduct(id))).join("")));
-    $$("[data-su-books]").forEach((el) => (el.innerHTML = ["bk-phy-9", "bk-urdu-3", "bk-eng-kg"].map((id) => book3d(getProduct(id))).join("")));
+    $$("[data-su-books]").forEach((el) => (el.innerHTML = ["bk-phy-9", "bk-urdu-3", "bk-eng-kg"].map((id) => `<span>${art(getProduct(id))}</span>`).join("")));
 
     if (finePointer && !reduced) $$(".dept, .offer").forEach((t) => {
       t.addEventListener("pointermove", (e) => { const r = t.getBoundingClientRect(); t.style.setProperty("--ry", (((e.clientX - r.left) / r.width - 0.5) * 10).toFixed(2) + "deg"); t.style.setProperty("--rx", ((0.5 - (e.clientY - r.top) / r.height) * 8).toFixed(2) + "deg"); });
@@ -1059,7 +1170,12 @@
 
     /* the how-it-works line draws itself as you scroll */
     const flow = $(".flow");
-    if (flow) onScrollFrame(() => { const r = flow.getBoundingClientRect(); flow.style.setProperty("--fp", Math.min(1, Math.max(0, (innerHeight * 0.8 - r.top) / (r.height + innerHeight * 0.3))).toFixed(3)); });
+    const flowBar = flow && $(".flow__line i", flow);
+    if (flowBar) onScrollFrame(() => {
+      const r = flow.getBoundingClientRect();
+      if (r.bottom < -200 || r.top > innerHeight + 200) return; /* nothing to do while it's far off screen */
+      flowBar.style.transform = `scaleX(${Math.min(1, Math.max(0, (innerHeight * 0.8 - r.top) / (r.height + innerHeight * 0.3))).toFixed(3)})`;
+    });
 
     const sets = {
       all: FEATURED,
@@ -1097,15 +1213,29 @@
       cat: params.get("cat") || "", q: (params.get("q") || "").trim(), school: params.get("school") || "", cls: params.get("class") || "",
       sale: params.get("sale") === "1", max: Number(params.get("max")) || MAXP, sort: params.get("sort") || "popular", shown: PAGE,
     };
-    const CATS = [["", "Everything"], ["books", "Textbooks"], ["uniforms", "Uniforms"], ["stationery", "Stationery"], ["bags", "Bags & bottles"]];
-    const titles = { "": "Shop everything", books: "Textbooks", uniforms: "School uniforms", stationery: "Stationery", bags: "Bags & bottles" };
+    const CATS = [["", "Everything"], ["books", "Textbooks"], ["uniforms", "Uniforms"], ["stationery", "Stationery"], ["novels", "Novels"], ["bags", "Bags & bottles"]];
+    const titles = { "": "Shop everything", books: "Textbooks", uniforms: "School uniforms", stationery: "Stationery", novels: "Novels and story books", bags: "Bags & bottles" };
     const fCat = $("#f-cat"), fSchool = $("#fl-school"), fClass = $("#fl-class"), fMax = $("#f-max");
     fMax.max = MAXP; fMax.value = state.max;
     let qHits = null, qFor = null;
     const matchBase = (p) => { if (p.cat === "service") return false; if (!state.q) return true; if (qFor !== state.q) { qHits = new Set(searchProducts(state.q).map((x) => x.id)); qFor = state.q; } return qHits.has(p.id); };
     const maxLabel = () => (state.max >= MAXP ? "Any price" : `Up to ${rs(state.max)}`);
 
+    /* departments as photo pills, and a grid or list switch */
+    const bar = $(".shop__bar");
+    const catPic = (v) => { const p = v && PRODUCTS.find((x) => x.cat === v && photoOf(x, 160)); return p ? `<img src="${photoOf(p, 160)}" alt="" loading="lazy" decoding="async">` : icon(v === "bags" ? "bag" : v === "novels" ? "open" : "store"); };
+    bar.insertAdjacentHTML("beforebegin", `<div class="cat-strip" id="cat-strip" role="group" aria-label="Departments">${CATS.map(([v, l]) => `<button type="button" class="catpill" data-cat="${v}"><span class="catpill__pic">${catPic(v)}</span><span class="catpill__txt">${l}<small></small></span></button>`).join("")}</div>`);
+    const GRID = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>';
+    const ROWS = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4.5" width="5" height="5" rx="1.2"/><rect x="4" y="14.5" width="5" height="5" rx="1.2"/><path d="M13 6h7M13 9h4M13 16h7M13 19h4"/></svg>';
+    let view = store.get("asif_view", "grid") === "list" ? "list" : "grid";
+    $("#sort").closest("label").insertAdjacentHTML("beforebegin", `<div class="vtoggle" role="group" aria-label="Layout"><button type="button" data-vmode="grid" aria-label="Grid view">${GRID}</button><button type="button" data-vmode="list" aria-label="List view">${ROWS}</button></div>`);
+    const syncView = () => $$("[data-vmode]", bar).forEach((b) => b.setAttribute("aria-pressed", b.dataset.vmode === view));
+    syncView();
+    bar.addEventListener("click", (e) => { const b = e.target.closest("[data-vmode]"); if (!b || b.dataset.vmode === view) return; view = b.dataset.vmode; store.set("asif_view", view); syncView(); draw(); });
+    $("#cat-strip").addEventListener("click", (e) => { const b = e.target.closest("[data-cat]"); if (!b) return; state.cat = b.dataset.cat; if (state.cat !== "books" && state.cat !== "") state.cls = ""; if (state.cat !== "uniforms" && state.cat !== "") state.school = ""; state.shown = PAGE; draw(); });
+
     function drawFilters() {
+      $$("#cat-strip [data-cat]").forEach((b) => { const v = b.dataset.cat; b.setAttribute("aria-pressed", state.cat === v); $("small", b).textContent = PRODUCTS.filter((p) => (!v || p.cat === v) && matchBase(p)).length; });
       fCat.innerHTML = CATS.map(([v, l]) => `<label class="opt"><span><input type="radio" name="cat" value="${v}" ${state.cat === v ? "checked" : ""}>${l}</span><small>${PRODUCTS.filter((p) => (!v || p.cat === v) && matchBase(p)).length}</small></label>`).join("");
       fSchool.innerHTML = `<button class="chip" aria-pressed="${!state.school}" data-school="">All</button>` + SCHOOLS.map((s) => `<button class="chip" data-school="${s.id}" aria-pressed="${state.school === s.id}" title="${esc(s.name)}">${s.short}</button>`).join("");
       fClass.innerHTML = `<button class="chip" aria-pressed="${!state.cls}" data-cls="">All</button>` + CLASSES.map((c) => `<button class="chip" data-cls="${c.id}" aria-pressed="${state.cls === c.id}">${c.n}</button>`).join("");
@@ -1132,7 +1262,8 @@
     }
     function draw(animate = true) {
       const r = results();
-      $("#shop-title").textContent = state.q ? `Results for "${state.q}"` : state.sale ? "Offers this week" : titles[state.cat];
+      const titleEl = $("#shop-title"), title = state.q ? `Results for "${state.q}"` : state.sale ? "Offers this week" : titles[state.cat];
+      if (titleEl.getAttribute("aria-label") !== title) { titleEl.textContent = title; titleEl.removeAttribute("aria-label"); }
       $("#shop-count").textContent = `${r.length} ${r.length === 1 ? "product" : "products"}`;
       const chips = [];
       if (state.q) chips.push(["q", `Search: ${state.q}`]);
@@ -1145,7 +1276,7 @@
       const listLink = (state.cat === "books" || state.cls) ? `<a class="shop-hint" href="school-lists.html${state.school || state.cls ? `?${state.school ? `school=${state.school}` : ""}${state.school && state.cls ? "&" : ""}${state.cls ? `class=${state.cls}` : ""}` : ""}">${icon("list")}<span><strong>Buying for a class?</strong> Load your school's full ${state.cls ? getClass(state.cls).name + " " : ""}list in one step, with registers and stationery.</span>${icon("arrow")}</a>` : "";
       const pops = ["Mathematics", "English", "Class 5", "Geometry box", "School bag", "Sweater"];
       box.innerHTML = listLink + (r.length
-        ? `<div class="grid grid--3">${r.slice(0, state.shown).map(card).join("")}</div>` + (r.length > state.shown ? `<div class="load-more"><button class="btn btn--ghost" data-more>Show more products (${r.length - state.shown} left)</button></div>` : "")
+        ? `<div class="grid grid--3${view === "list" ? " is-list" : ""}">${r.slice(0, state.shown).map(card).join("")}</div>` + (r.length > state.shown ? `<div class="load-more"><button class="btn btn--ghost" data-more>Show more products (${r.length - state.shown} left)</button></div>` : "")
         : `<div class="empty"><div class="empty__ic">${icon("search")}</div><h3>${state.q ? `Nothing found for "${esc(state.q)}"` : "No products match these filters"}</h3><p>Try a subject, a class like "class 5", or a school name. Popular searches:</p><div class="pop-search">${pops.map((t) => `<a class="chip" href="shop.html?q=${encodeURIComponent(t)}">${t}</a>`).join("")}</div><button class="btn btn--dark" data-reset>Clear all filters</button><p class="note" style="margin-top:14px">Can't find a title? <a class="text-link" href="https://wa.me/${STORE.whatsapp}" target="_blank" rel="noopener">Ask us on WhatsApp</a>.</p></div>`);
       if (animate && !reduced) { box.classList.remove("is-updating"); void box.offsetWidth; box.classList.add("is-updating"); }
       $$(".reveal", box).forEach((c, i) => (i < 9 && animate ? c.classList.add("in") : null));
@@ -1176,18 +1307,23 @@
     Recent.push(p.id);
     document.title = `${p.name} | ${STORE.name}`;
     const school = p.school && getSchool(p.school);
-    const crumbCat = { books: "Textbooks", uniforms: "Uniforms", stationery: "Stationery", bags: "Bags & bottles", service: "Services" }[p.cat];
-    const meta = p.type === "book" ? `${p.subject}, ${getClass(p.classId).name}` : school ? school.name : crumbCat;
+    const crumbCat = { books: "Textbooks", uniforms: "Uniforms", stationery: "Stationery", novels: "Novels", bags: "Bags & bottles", service: "Services" }[p.cat];
+    const meta = p.type === "book" ? `${p.subject}, ${getClass(p.classId).name}` : school ? school.name : p.type === "novel" ? `By ${p.author}` : crumbCat;
     let size = p.sizes && p.sizes.length === 1 ? p.sizes[0] : "";
     if (p.type === "book" && BOOK_PUBLISHERS[p.subj]) p.specs = { Publisher: BOOK_PUBLISHERS[p.subj], ...p.specs };
     const touch = !matchMedia("(hover: hover)").matches;
     $("#crumbs").innerHTML = `<a href="index.html">Home</a><a href="${p.cat === "uniforms" ? "uniforms.html" : "shop.html?cat=" + p.cat}">${crumbCat}</a><span>${esc(p.name)}</span>`;
 
-    const views = p.type === "book"
+    const hasPhoto = !!photoOf(p);
+    const views = hasPhoto
+      ? (p.type === "book" ? [["front", "Photo"], ["inside", "Inside"]] : [["front", "Photo"]])
+      : p.type === "book"
       ? [["front", "Front", 28], ["spine", "Spine", 72], ["back", "Back", 180], ["inside", "Inside", null]]
       : p.type === "uniform" ? [["front", "Front"], ["crest", "Crest"]] : [["front", "Front"]];
     const thumbs = views.map(([k, l], i) => `<button class="gallery__thumb" data-view="${k}" aria-pressed="${i === 0}" aria-label="${l} view" style="--tint:${tintOf(p)}">${k === "front" ? art(p) : k === "crest" ? `<div class="art">${crestDetail(p)}</div>` : `<span>${l}</span>`}</button>`).join("");
-    const stage = p.type === "book"
+    const stage = hasPhoto
+      ? `<div class="gallery__stage gallery__stage--photo" data-zoom style="--tint:${tintOf(p)}">${art(p, "lg")}<div class="gallery__bar"><span class="gallery__hint">${icon("search")}${touch ? "Real photo" : "Hover to zoom"}</span>${p.type === "book" ? `<button class="btn btn--dark btn--sm" data-look>${icon("open")}Look inside</button>` : ""}</div></div>`
+      : p.type === "book"
       ? `<div class="gallery__stage" data-drag style="--tint:${tintOf(p)}">${book3d(p)}<div class="gallery__bar"><span class="gallery__hint">${icon("rotate")}${touch ? "Swipe to turn" : "Drag to turn"}</span><button class="btn btn--dark btn--sm" data-look>${icon("open")}Look inside</button></div></div>`
       : `<div class="gallery__stage" data-zoom style="--tint:${tintOf(p)}">${art(p)}<div class="gallery__bar"><span class="gallery__hint">${icon("search")}${touch ? "Tap the views to switch" : "Hover to zoom"}</span></div></div>`;
     const tabs = [
@@ -1195,7 +1331,7 @@
       ["details", "Details", `<dl>${Object.entries(p.specs || {}).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>`],
       ["delivery", "Delivery & returns", `<p>Delivery across Karachi in 1 to 2 working days, free on orders over ${rs(STORE.freeDeliveryOver)}. Store pickup from Gulshan-e-Iqbal is free and usually ready in 4 to 6 hours.</p><p style="margin-top:10px">${p.type === "uniform" ? "Exchange any size within 7 days with tags on. Hems and sleeves are altered free in the same window." : p.type === "book" ? "If a title doesn't match your school's prescribed edition, we replace it free." : "Faulty items are replaced free within 7 days."} <a class="text-link" href="policies.html#returns">Full returns policy</a></p>`],
     ];
-    const fbt = (p.type === "book" ? ["sv-cover", "nb-single-80", "st-labels-40"] : p.type === "uniform" ? [`un-${p.school}-tie`, `un-${p.school}-sweater`] : ["st-pouch", "st-eraser-sharp"]).filter((x) => x !== p.id && getProduct(x));
+    const fbt = (p.type === "book" ? ["sv-cover", "nb-single-80", "st-labels-40"] : p.type === "uniform" ? [`un-${p.school}-tie`, `un-${p.school}-sweater`] : p.type === "novel" ? NOVELS.map((x) => x.id).filter((x) => x !== p.id).slice(0, 2) : ["st-pouch", "st-eraser-sharp"]).filter((x) => x !== p.id && getProduct(x));
 
     $("#pdp").innerHTML = `
       <div class="gallery"><div class="gallery__thumbs">${thumbs}</div>${stage}</div>
@@ -1218,7 +1354,7 @@
         <div class="eta">${icon("truck")}<span>Deliver to</span><select class="select" id="eta-area" aria-label="Delivery area">${DELIVERY_AREAS.map((a) => `<option>${esc(a.name)}</option>`).join("")}</select><strong id="eta-val"></strong></div>
         <div class="assure">
           <div>${icon("store")}<span>Free pickup from Gulshan-e-Iqbal. ${esc(STORE.pickupNote)}.</span></div>
-          <div>${icon("swap")}<span>${p.type === "uniform" ? "Exchange any size within 7 days, tags on." : p.type === "book" ? "Wrong edition? We replace it free before school starts." : "Faulty items replaced free within 7 days."}</span></div>
+          <div>${icon("swap")}<span>${p.type === "uniform" ? "Exchange any size within 7 days, tags on." : p.type === "book" ? "Wrong edition? We replace it free before school starts." : p.type === "novel" ? "Misprinted or damaged copy? We replace it free within 7 days." : "Faulty items replaced free within 7 days."}</span></div>
           <div>${icon("shield")}<span>Pay cash on delivery, or by JazzCash, Easypaisa or bank transfer.</span></div>
         </div>
         <div class="ptabs"><div class="ptabs__list" role="tablist">${tabs.map(([k, l], i) => `<button role="tab" data-ptab="${k}" aria-selected="${i === 0}">${l}</button>`).join("")}<span class="ptabs__ink"></span></div>
@@ -1298,9 +1434,9 @@
       st.addEventListener("pointermove", (e) => { if (!down) return; ry += (e.clientX - sx) * 0.55; rx = Math.max(-22, Math.min(22, rx - (e.clientY - sy) * 0.25)); sx = e.clientX; sy = e.clientY; apply(); });
       const end = () => { down = false; st.classList.remove("dragging"); };
       st.addEventListener("pointerup", end); st.addEventListener("pointercancel", end);
-      $("[data-look]").addEventListener("click", () => quickView(p.id));
+      $("[data-look]").addEventListener("click", () => quickView(p.id, true));
       $$("[data-view]").forEach((b) => b.addEventListener("click", () => {
-        if (b.dataset.view === "inside") { quickView(p.id); return; }
+        if (b.dataset.view === "inside") { quickView(p.id, true); return; }
         $$("[data-view]").forEach((x) => x.setAttribute("aria-pressed", x === b));
         ry = views.find(([k]) => k === b.dataset.view)[2]; rx = 4; apply();
       }));
@@ -1311,7 +1447,10 @@
         zm.addEventListener("pointermove", (e) => { const r = zm.getBoundingClientRect(); zm.style.setProperty("--zx", ((e.clientX - r.left) / r.width) * 100 + "%"); zm.style.setProperty("--zy", ((e.clientY - r.top) / r.height) * 100 + "%"); zm.classList.add("zooming"); });
         zm.addEventListener("pointerleave", () => zm.classList.remove("zooming"));
       }
+      $("[data-look]", zm)?.addEventListener("click", () => quickView(p.id, true));
       $$("[data-view]").forEach((b) => b.addEventListener("click", () => {
+        if (b.dataset.view === "inside") { quickView(p.id, true); return; }
+        if (hasPhoto) return;
         $$("[data-view]").forEach((x) => x.setAttribute("aria-pressed", x === b));
         const a = $(".art", zm);
         a.innerHTML = b.dataset.view === "crest" ? `<div class="gallery__detail">${crestDetail(p)}</div>` : svgArt(p);
@@ -1450,7 +1589,7 @@
       const sc = getSchool(sel);
       $("#u-title").textContent = `${sc.name} uniform`;
       $("#u-band").style.setProperty("--sc", sc.color); $("#u-band").style.setProperty("--acc", sc.accent);
-      $("#u-band-art").innerHTML = ["shirt", "sweater", "tie"].map((k) => `<span>${svgArt(getProduct(`un-${sel}-${k}`))}</span>`).join("");
+      $("#u-band-art").innerHTML = ["shirt", "sweater", "tie"].map((k) => `<span>${art(getProduct(`un-${sel}-${k}`))}</span>`).join("");
       const g = $("#u-grid");
       builder();
       swap(g, pieces().map(card).join(""), () => $$(".reveal", g).forEach((c) => c.classList.add("in")));
@@ -1785,7 +1924,7 @@
   function wireSmoothScroll() {
     $$(".drawer__body, .modal__box, .filters, .mini-items, .suggest").forEach((el) => el.setAttribute("data-lenis-prevent", ""));
     if (!window.Lenis || reduced || !finePointer) return;
-    lenis = new window.Lenis({ duration: 1.1, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
+    lenis = new window.Lenis({ duration: 0.85, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
     const loop = (t) => { lenis.raf(t); requestAnimationFrame(loop); };
     requestAnimationFrame(loop);
     document.addEventListener("click", (e) => {
@@ -1797,7 +1936,7 @@
 
   /* ------------------------------------------------- Urdu for the main buttons and checkout */
   const UR = {
-    "School book lists": "اسکول کی بک لسٹ", "Books": "کتابیں", "Uniforms": "یونیفارم", "Stationery": "اسٹیشنری", "Bags & bottles": "بستے اور بوتلیں", "Offers": "آفرز",
+    "School book lists": "اسکول کی بک لسٹ", "Books": "کتابیں", "Uniforms": "یونیفارم", "Stationery": "اسٹیشنری", "Novels": "ناول", "Home": "ہوم", "Lists": "لسٹیں", "Shop": "دکان", "In cart": "کارٹ میں", "Bags & bottles": "بستے اور بوتلیں", "Offers": "آفرز",
     "About us": "ہمارے بارے میں", "Visit the store": "دکان کا پتہ", "Book lists": "بک لسٹ", "Account": "اکاؤنٹ", "Saved": "پسندیدہ", "Cart": "کارٹ",
     "Track an order": "آرڈر ٹریک کریں", "Help": "مدد", "Build my school kit": "اسکول کِٹ بنائیں", "Browse the shop": "دکان دیکھیں",
     "Your school": "آپ کا اسکول", "Their class": "بچے کی کلاس", "Kit total": "کِٹ کی کل قیمت", "Add kit to cart": "کِٹ کارٹ میں شامل کریں", "Review every title": "تمام کتابیں دیکھیں",
@@ -1843,8 +1982,42 @@
     new MutationObserver(() => { if (!urdu) return; clearTimeout(trTimer); trTimer = setTimeout(() => translate(), 60); }).observe(document.body, { childList: true, subtree: true });
   }
 
+  /* opening sequence on the home page, once per visit: four photo panels rise, the name sets, the panels part */
+  function wireIntro() {
+    const root = document.documentElement;
+    if (!root.classList.contains("intro-on")) return;
+    try { sessionStorage.setItem("asif_intro", "1"); } catch (e) { /* private mode */ }
+    const u = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&q=70&w=560&h=960`;
+    const el = document.createElement("div");
+    el.className = "intro";
+    el.innerHTML = `<div class="intro__panels" aria-hidden="true">${HERO_SLIDES.map((sl, i) => `<div class="intro__p" style="--i:${i}"><img src="${u(sl.photo)}" alt="" decoding="async"><span>${esc(sl.title)}</span></div>`).join("")}</div>
+      <div class="intro__lock">
+        <span class="intro__tile"><img src="assets/mark-yellow.png" alt="" width="48" height="47"></span>
+        <p class="intro__name" aria-label="${esc(STORE.name)}">${["Asif", "Books", "&amp;", "Uniform"].map((w, i) => `<span aria-hidden="true"><i style="--w:${i}">${w}</i></span>`).join(" ")}</p>
+        <p class="intro__sub">${esc(STORE.area)}</p>
+        <span class="intro__bar" aria-hidden="true"><i></i></span>
+      </div>
+      <button class="intro__skip" type="button">Skip intro</button>`;
+    document.body.appendChild(el);
+    let done = false, t1, t2;
+    const out = () => {
+      if (done) return; done = true; clearTimeout(t1); clearTimeout(t2);
+      el.classList.add("is-out"); root.classList.remove("intro-on");
+      document.removeEventListener("keydown", key);
+      setTimeout(() => el.remove(), 1050);
+    };
+    const key = (e) => { if (e.key === "Escape" || e.key === "Enter" || e.key === " ") { e.preventDefault(); out(); } };
+    el.addEventListener("click", out);
+    document.addEventListener("keydown", key);
+    const imgs = $$("img", $(".intro__panels", el));
+    const go = () => { if (done || el.classList.contains("is-go")) return; el.classList.add("is-go"); t2 = setTimeout(out, 2300); };
+    Promise.all(imgs.map((im) => (im.complete ? 1 : new Promise((r) => { im.onload = im.onerror = r; })))).then(() => setTimeout(go, 350));
+    t1 = setTimeout(go, 1500);
+  }
+
   /* ---------------------------------------------------------- boot */
   function boot() {
+    wireIntro();
     const h = $("#site-header"), f = $("#site-footer");
     if (h) h.outerHTML = header();
     if (f) f.outerHTML = footer();
@@ -1856,8 +2029,20 @@
       const add = e.target.closest("[data-add]");
       if (add) {
         flyToCart(add.closest(".card")?.querySelector(".card__art > *"));
-        Cart.add(add.dataset.add); add.classList.add("is-done"); add.innerHTML = icon("check") + "<span>Added</span>";
+        const inCard = add.closest(".card[data-pid]");
+        Cart.add(add.dataset.add);
+        if (inCard) { const q = $(".cqty", inCard); q.classList.remove("pop"); void q.offsetWidth; q.classList.add("pop"); $("[data-cinc]", q).focus({ preventScroll: true }); return; }
+        add.classList.add("is-done"); add.innerHTML = icon("check") + "<span>Added</span>";
         setTimeout(() => { add.classList.remove("is-done"); add.innerHTML = icon("plus") + "<span>Add</span>"; }, 1400);
+        return;
+      }
+      const cstep = e.target.closest("[data-cinc], [data-cdec]");
+      if (cstep) {
+        const up = cstep.hasAttribute("data-cinc"), k = Cart.key(up ? cstep.dataset.cinc : cstep.dataset.cdec, ""), it = Cart.items.find((x) => x.k === k);
+        if (!it) return;
+        if (up) Cart.set(k, it.qty + 1);
+        else if (it.qty <= 1) { const c = cstep.closest(".card"); Cart.remove(k); c && $(".add-btn", c).focus({ preventScroll: true }); }
+        else Cart.set(k, it.qty - 1);
         return;
       }
       const sv = e.target.closest("[data-save]");
@@ -1913,12 +2098,21 @@
     const hdr = $("[data-header]");
     let scrolled = null, ticking = false, lastY = scrollY, travel = 0, hidden = false;
     const setHidden = (h) => { if (h === hidden || !hdr) return; hidden = h; hdr.classList.toggle("is-hidden", h); document.documentElement.classList.toggle("hdr-hidden", h); };
-    const busy = () => hdr && (hdr.matches(":focus-within") || $(".has-mega:hover", hdr) || $('[data-menu][aria-expanded="true"]', hdr) || document.body.style.overflow === "hidden");
+    const scrollBar = $("[data-scroll-bar]");
+    /* a soft ripple spreads from where a button, tab or chip is pressed */
+    if (!reduced) document.addEventListener("pointerdown", (e) => {
+      const b = e.target.closest?.(".btn, .add-btn, .tab, .chip, .seg button, .kdot, .kchip, .tabbar a, .tabbar button"); if (!b || b.disabled) return;
+      const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2, s = document.createElement("span");
+      s.className = "ripple"; s.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
+      b.appendChild(s); setTimeout(() => s.remove(), 650);
+    }, { passive: true });
+    const busy = () => hdr && (hdr.matches(":focus-within") || $(".has-mega.is-open", hdr) || $('[data-menu][aria-expanded="true"]', hdr) || document.body.style.overflow === "hidden");
     addEventListener("scroll", () => {
       if (ticking) return; ticking = true;
       requestAnimationFrame(() => {
         const y = scrollY, s = y > 8;
         if (s !== scrolled) { scrolled = s; hdr?.classList.toggle("is-scrolled", s); }
+        if (scrollBar) scrollBar.style.transform = `scaleX(${Math.min(1, y / Math.max(1, document.documentElement.scrollHeight - innerHeight)).toFixed(4)})`;
         const dy = y - lastY; lastY = y;
         travel = Math.sign(dy) === Math.sign(travel) ? travel + dy : dy; /* distance moved in one direction */
         if (y < 160) setHidden(false);
@@ -1942,6 +2136,17 @@
       const load = () => { $$("img[data-src]", li).forEach((i) => { i.src = i.dataset.src; i.removeAttribute("data-src"); }); wireImages(li); };
       li.addEventListener("pointerenter", load, { once: true });
       li.addEventListener("focusin", load, { once: true });
+      /* the panel opens only when the pointer rests on the menu word, so crossing the bar on the way to the page never opens it */
+      const link = li.firstElementChild; let t;
+      link.addEventListener("pointerenter", (e) => {
+        if (e.pointerType !== "mouse") return;
+        clearTimeout(t);
+        t = setTimeout(() => { $$(".has-mega.is-open").forEach((x) => x !== li && x.classList.remove("is-open")); li.classList.add("is-open"); }, 170);
+      });
+      link.addEventListener("pointerleave", () => { if (!li.classList.contains("is-open")) clearTimeout(t); });
+      li.addEventListener("pointerenter", () => { if (li.classList.contains("is-open")) clearTimeout(t); });
+      li.addEventListener("pointerleave", () => { clearTimeout(t); t = setTimeout(() => li.classList.remove("is-open"), 140); });
+      li.addEventListener("keydown", (e) => { if (e.key === "Escape") { li.classList.remove("is-open"); document.activeElement?.blur(); } });
     });
     /* returning via back/forward, or changes made in another tab, refresh the counts */
     const resync = () => {
