@@ -2859,3 +2859,19 @@ a, button, [role="tab"], label, summary { -webkit-tap-highlight-color: transpare
 /* gallery bar holds only the Look inside button now */
 .gallery__bar { justify-content: flex-end; }
 .gallery__bar:empty { display: none; }
+
+
+/* ==========================================================================
+   Round 20: Safari GPU safety
+   ========================================================================== */
+/* intro panels slide on transform only; clip-path animation on full-screen layers is costly in Safari */
+.intro__p { clip-path: none; transform: translateY(101%); will-change: transform; transition: transform 1s cubic-bezier(.77, 0, .18, 1) calc(var(--i) * 90ms); }
+.intro.is-go .intro__p { clip-path: none; transform: none; }
+.intro.is-out .intro__p { transform: translateY(-101%); transition-duration: .95s; transition-delay: calc(var(--i) * 70ms); }
+.intro.is-out .intro__p:nth-child(even) { transform: translateY(101%); }
+/* touch devices: no live blur behind the hero card and buttons. Blur stacked over a playing video can crash Safari's graphics process. */
+@media (hover: none), (max-width: 860px) {
+  .ccard, .btn, .btn--glass, .intro__skip, .hero__tag, .tile__count, .split__badge { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .intro__p img { transition: none; transform: scale(1.04); }
+}
+@media (hover: none) and (min-width: 861px) { .ccard { background-color: rgba(9, 8, 14, .66); } }

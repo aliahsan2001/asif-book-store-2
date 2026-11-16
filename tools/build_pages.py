@@ -20,6 +20,7 @@ HEAD = '''<!doctype html>
   <script type="speculationrules">{{"prefetch": [{{"where": {{"href_matches": "/*"}}, "eagerness": "moderate"}}]}}</script>
 </head>
 <body data-page="{page}">
+  <script>if(/[?&]debug=1/.test(location.search)){{window.addEventListener("error",function(e){{var d=document.getElementById("dbg")||document.body.appendChild(Object.assign(document.createElement("pre"),{{id:"dbg"}}));d.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:99999;max-height:45%;overflow:auto;margin:0;padding:10px;background:#fff;color:#b00020;font:12px/1.4 monospace;white-space:pre-wrap";d.textContent+=(e.message||"resource failed: "+((e.target&&(e.target.src||e.target.href))||"?"))+" @ "+(e.filename||"").split("/").pop()+":"+(e.lineno||"")+" | "}},true)}}</script>
   <script>(function(){{try{{var d=document,h=d.documentElement;if(d.body.dataset.page!=="home"||matchMedia("(prefers-reduced-motion: reduce)").matches||(!/[?&]intro=1/.test(location.search)&&sessionStorage.getItem("asif_intro")))return;h.classList.add("intro-on");setTimeout(function(){{h.classList.remove("intro-on")}},5000)}}catch(e){{}}}})()</script>
   <div id="site-header"></div>
   <main>
@@ -252,7 +253,7 @@ P['index.html'] = dict(page='home', title='Asif Books & Uniform | School books, 
     <section class="section" style="padding-top:0">
       <div class="wrap">
         <div class="visit reveal">
-          <div class="visit__img"><span class="visit__chip">{CLOCK}Open 7 days a week</span><img class="img-fade" src="assets/store-counter.jpg" alt="The Asif Books counter with stacked textbooks, registers, pencils and folded uniforms" loading="lazy"></div>
+          <div class="visit__img"><span class="visit__chip">{CLOCK}Open 7 days a week</span><img class="img-fade" src="assets/shop-interior.jpg" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1599901723404-e38e7192b930?auto=format&amp;fit=crop&amp;q=70&amp;w=1200'" alt="The Asif Books counter with stacked textbooks, registers, pencils and folded uniforms" loading="lazy"></div>
           <div class="visit__body">
             <p class="kicker" style="color:var(--gold-400)">Visit</p>
             <h2>Come to the store</h2>
@@ -432,7 +433,7 @@ P['about.html'] = dict(page='about', title='About us | Asif Books &amp; Uniform'
           <p>Asif Books &amp; Uniform serves families across Gulshan-e-Iqbal with everything a school year needs: prescribed textbooks, registers, stationery and uniforms stitched to each school's pattern.</p>
           <p>The online store brings the counter to your phone. Choose your school and class, and the full list is ready to review, packed by the same team, with the same care.</p>
         </div>
-        <div class="split__img reveal" style="--i:1"><img class="img-fade" src="assets/store-counter.jpg" alt="The Asif Books counter" loading="lazy" style="width:100%;height:100%;object-fit:cover"></div>
+        <div class="split__img reveal" style="--i:1"><img class="img-fade" src="assets/shop-interior.jpg" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1599901723404-e38e7192b930?auto=format&amp;fit=crop&amp;q=70&amp;w=1200'" alt="The Asif Books counter" loading="lazy" style="width:100%;height:100%;object-fit:cover"></div>
       </div>
       <div class="about-grid">
         <figure class="reveal">{photo("shelves", 700, "Books on a shelf")}</figure>

@@ -65,7 +65,7 @@ Also: the About page text and the policies need the owner's review, and the What
 
 Product pictures are stand-in stock photos, not photos of the shop's own stock: `PRODUCT_PHOTOS`, `UNIFORM_PHOTOS` and `SUBJECT_PHOTOS` in `js/data.js` hold Unsplash photo ids (every textbook of a subject shares that subject's photo, with a class tag on it), and `NOVEL_COVERS` holds Open Library cover ids for the novels. Name labels, the cover roll, skirts and shalwar kameez have no fair stock match and keep their drawn artwork. Replace all of these with photos of the real items before launch.
 
-Other photos are free-licence images from Unsplash, loaded from Unsplash's image CDN (see `IMAGES` in `js/data.js`). For launch, either download them into `assets/` and point `IMAGES` at the local files, or replace them with the shop's own photos. `assets/store-counter.jpg` is the client's own render.
+Other photos are free-licence images from Unsplash, loaded from Unsplash's image CDN (see `IMAGES` in `js/data.js`). For launch, either download them into `assets/` and point `IMAGES` at the local files, or replace them with the shop's own photos. `assets/shop-interior.jpg` is the client's own render.
 
 ## Shopping behaviour
 
@@ -87,6 +87,8 @@ The HTML pages are generated. Edit the templates in `tools/build_pages.py`, then
 - Every build stamps the CSS and JS links with a version (`store.css?v=…`), and `vercel.json` tells browsers to re-check pages, CSS and JS on each visit. After changing `css/` or `js/`, run `python tools/build_pages.py .` before deploying so phones pick up the new files.
 - On touch devices the hero keeps one clip loaded at a time and releases the others. If the phone refuses autoplay (Low Power Mode), the scene shows a finished still (`assets/hero/*-still.jpg`) and starts playing on the first touch.
 - The clips are H.264 MP4 with the index at the front of the file, which Safari needs to start them quickly. New clips should be exported the same way ("fast start" / "web optimised").
+
+- To see script errors on a phone, add `?debug=1` to any page address: errors are printed in a white box at the bottom of the screen.
 
 ## Going live
 
