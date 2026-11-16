@@ -1075,9 +1075,11 @@
     const dust = Array.from({ length: 10 }, () => `<i style="left:${(r() * 100).toFixed(1)}%;top:${(15 + r() * 65).toFixed(1)}%;--s:${(2 + r() * 3).toFixed(1)}px;--t:${(10 + r() * 9).toFixed(1)}s;--dl:${(-r() * 10).toFixed(1)}s"></i>`).join("");
     /* visitors who asked for less motion or less data get the still photographs */
     const still = reduced || !!(navigator.connection && navigator.connection.saveData);
+    /* phones and tablets (iPhone and iPad above all) keep a single clip loaded at a time: several decoders at once can crash the tab */
+    const lean = !finePointer;
     box.innerHTML = HERO_SLIDES.map((sl, i) => `<article class="cslide${i === 0 ? " is-on" : ""}${sl.video && !still ? " cslide--video" : ""}" data-k="${sl.k}" id="cs-${i}" role="tabpanel" aria-roledescription="slide" aria-label="${i + 1} of ${HERO_SLIDES.length}: ${esc(sl.title)}"${i ? " inert" : ""}>
         <div class="cslide__film">${sl.video && !still
-          ? `${sl.poster ? `<img class="film__bg" src="${esc(sl.poster)}" alt="" decoding="async">` : ""}<video class="film__main" muted loop playsinline disablepictureinpicture aria-hidden="true" tabindex="-1" preload="${i === 0 ? "auto" : "none"}"${sl.poster ? ` poster="${esc(sl.poster)}"` : ""} src="${esc(sl.video)}" style="--pos:${sl.vpos || "60% 50%"};--mpos:${sl.mpos || "60% 50%"}"></video>`
+          ? `${sl.poster ? `<img class="film__bg" src="${esc(sl.poster)}" alt="" decoding="async">` : ""}<video class="film__main" muted loop playsinline disablepictureinpicture aria-hidden="true" tabindex="-1" webkit-playsinline preload="${i === 0 && !lean ? "auto" : "none"}"${sl.poster ? ` poster="${esc(sl.poster)}"` : ""} ${lean ? "data-src" : "src"}="${esc(sl.video)}" data-still="${esc(sl.still || "")}" style="--pos:${sl.vpos || "60% 50%"};--mpos:${sl.mpos || "60% 50%"}"></video>`
           : `<img class="film__bg" src="${src(sl.photo, 300)}" alt="" ${i === 0 ? "" : 'loading="lazy"'} decoding="async"><img class="film__main" src="${src(sl.photo, 1600)}" srcset="${src(sl.photo, 800)} 800w, ${src(sl.photo, 1600)} 1600w, ${src(sl.photo, 2400)} 2400w" sizes="(max-width: 860px) 100vw, 70vw" alt="" style="object-position:${sl.pos || "50% 50%"}" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">`}</div>
         <div class="cslide__light" aria-hidden="true"></div><div class="cslide__dust" aria-hidden="true">${dust}</div>
         <div class="wrap cslide__grid">
@@ -1092,13 +1094,22 @@
     /* only the scene on screen plays; each clip starts from its first frame, and the next one is fetched ahead */
     const vids = slides.map((sl) => $("video", sl));
     const canPlay = () => !sec.classList.contains("is-stopped") && !sec.classList.contains("is-off") && !document.hidden;
+    vids.forEach((v) => { if (!v) return; v.muted = true; v.defaultMuted = true; v.playsInline = true; v.setAttribute("muted", ""); });
+    let blocked = false;
+    const release = (v) => { if (lean && v.getAttribute("src")) { v.removeAttribute("src"); v.load(); } };
     const playVideo = (i, restart = true) => vids.forEach((v, k) => {
       if (!v) return;
-      if (k !== i || !canPlay()) { v.pause(); return; }
-      if (restart) { try { v.currentTime = 0; } catch (e) { /* not loaded yet */ } }
-      v.play().catch(() => {});
+      if (k !== i) { v.pause(); if (lean) setTimeout(() => { if (cur !== k) release(v); }, 1400); return; }
+      if (!canPlay()) { v.pause(); return; }
+      if (!v.getAttribute("src")) v.src = v.dataset.src;
+      else if (restart) { try { v.currentTime = 0; } catch (e) { /* not loaded yet */ } }
+      const pr = v.play();
+      /* autoplay refused (Low Power Mode, data saver): show a finished frame instead of the dark opening one */
+      if (pr && pr.catch) pr.catch((err) => { if (err && err.name === "NotAllowedError") { blocked = true; if (v.dataset.still) v.poster = v.dataset.still; } });
     });
-    const warm = (i) => { const v = vids[(i + 1) % n]; if (v && v.preload === "none") v.preload = "auto"; };
+    /* the first touch is allowed to start playback where autoplay was refused */
+    document.addEventListener("touchend", () => { if (blocked) { blocked = false; playVideo(cur, false); } }, { passive: true });
+    const warm = (i) => { if (lean) return; const v = vids[(i + 1) % n]; if (v && v.preload === "none") v.preload = "auto"; };
     if (vids[0]) { let w = false; const first = () => { if (!w) { w = true; warm(0); } }; vids[0].addEventListener("canplaythrough", first, { once: true }); setTimeout(first, 4000); }
     function go(i, dir) {
       i = (i + n) % n; if (i === cur || lock) return;
@@ -1322,9 +1333,9 @@
       : p.type === "uniform" ? [["front", "Front"], ["crest", "Crest"]] : [["front", "Front"]];
     const thumbs = views.map(([k, l], i) => `<button class="gallery__thumb" data-view="${k}" aria-pressed="${i === 0}" aria-label="${l} view" style="--tint:${tintOf(p)}">${k === "front" ? art(p) : k === "crest" ? `<div class="art">${crestDetail(p)}</div>` : `<span>${l}</span>`}</button>`).join("");
     const stage = hasPhoto
-      ? `<div class="gallery__stage gallery__stage--photo" data-zoom style="--tint:${tintOf(p)}">${art(p, "lg")}<div class="gallery__bar"><span class="gallery__hint">${icon("search")}${touch ? "Real photo" : "Hover to zoom"}</span>${p.type === "book" ? `<button class="btn btn--dark btn--sm" data-look>${icon("open")}Look inside</button>` : ""}</div></div>`
+      ? `<div class="gallery__stage gallery__stage--photo" data-zoom style="--tint:${tintOf(p)}">${art(p, "lg")}<div class="gallery__bar">${p.type === "book" ? `<button class="btn btn--dark btn--sm" data-look>${icon("open")}Look inside</button>` : ""}</div></div>`
       : p.type === "book"
-      ? `<div class="gallery__stage" data-drag style="--tint:${tintOf(p)}">${book3d(p)}<div class="gallery__bar"><span class="gallery__hint">${icon("rotate")}${touch ? "Swipe to turn" : "Drag to turn"}</span><button class="btn btn--dark btn--sm" data-look>${icon("open")}Look inside</button></div></div>`
+      ? `<div class="gallery__stage" data-drag style="--tint:${tintOf(p)}">${book3d(p)}<div class="gallery__bar"><button class="btn btn--dark btn--sm" data-look>${icon("open")}Look inside</button></div></div>`
       : `<div class="gallery__stage" data-zoom style="--tint:${tintOf(p)}">${art(p)}<div class="gallery__bar"><span class="gallery__hint">${icon("search")}${touch ? "Tap the views to switch" : "Hover to zoom"}</span></div></div>`;
     const tabs = [
       ["desc", "Description", `<p>${esc(p.desc)}</p>`],
@@ -1414,7 +1425,7 @@
       const missing = ids.filter((id) => getProduct(id).sizes && !fbtOpt(id));
       if (missing.length) {
         const names = missing.map((id) => (id === p.id ? "this item (above)" : getProduct(id).name.replace(/^\w+ /, "").toLowerCase()));
-        err.textContent = `Choose a size for ${names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names.at(-1) : names[0]}.`;
+        err.textContent = `Choose a size for ${names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] : names[0]}.`;
         err.style.display = "block";
         missing.forEach((id) => $(`[data-fbt-size="${id}"]`)?.classList.add("invalid"));
         if (missing.includes(p.id)) needSize();

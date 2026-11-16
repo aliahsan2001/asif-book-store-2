@@ -1,5 +1,7 @@
 import sys, os
 root = sys.argv[1]
+import time
+VER = time.strftime('%Y%m%d%H%M')  # stamped on the css and js links so phones never keep an old copy
 
 HEAD = '''<!doctype html>
 <html lang="en">
@@ -14,19 +16,19 @@ HEAD = '''<!doctype html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://images.unsplash.com">
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500..800&family=Figtree:wght@400..800&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/store.css">
+  <link rel="stylesheet" href="css/store.css?v={ver}">
   <script type="speculationrules">{{"prefetch": [{{"where": {{"href_matches": "/*"}}, "eagerness": "moderate"}}]}}</script>
 </head>
 <body data-page="{page}">
-  <script>(function(){{try{{var d=document,h=d.documentElement;if(d.body.dataset.page!=="home"||matchMedia("(prefers-reduced-motion: reduce)").matches||(!/[?&]intro=1/.test(location.search)&&sessionStorage.getItem("asif_intro")))return;h.classList.add("intro-on");setTimeout(function(){{h.classList.remove("intro-on")}},7000)}}catch(e){{}}}})()</script>
+  <script>(function(){{try{{var d=document,h=d.documentElement;if(d.body.dataset.page!=="home"||matchMedia("(prefers-reduced-motion: reduce)").matches||(!/[?&]intro=1/.test(location.search)&&sessionStorage.getItem("asif_intro")))return;h.classList.add("intro-on");setTimeout(function(){{h.classList.remove("intro-on")}},5000)}}catch(e){{}}}})()</script>
   <div id="site-header"></div>
   <main>
 {body}
   </main>
   <div id="site-footer"></div>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/store.js"></script>
+  <script src="js/data.js?v={ver}"></script>
+  <script src="js/store.js?v={ver}"></script>
 </body>
 </html>
 '''
@@ -90,7 +92,6 @@ P['index.html'] = dict(page='home', title='Asif Books & Uniform | School books, 
         <div class="cine__dots" id="cine-dots" role="tablist" aria-label="Choose a scene"></div>
         <button class="cine__arrow" type="button" data-cine="1" aria-label="Next scene">{ARROW}</button>
         <button class="cine__pause" type="button" data-cine-pause aria-label="Pause the scenes" aria-pressed="false"><span></span></button>
-        <span class="cine__hint">Swipe or use the arrows</span>
       </div>
       <ul class="cine__trust wrap"><li>{CHECK}Playgroup to Matric</li><li>{CHECK}Books covered in store</li><li>{CHECK}Cash on delivery</li><li>{CHECK}Free delivery over Rs 5,000</li></ul>
     </section>
@@ -235,7 +236,7 @@ P['index.html'] = dict(page='home', title='Asif Books & Uniform | School books, 
         <div class="bpanel room" id="bp-shelves" role="tabpanel" hidden>
           <div class="room__bg">{photo("darkShelves", 1400, "")}</div>
           <div class="room__head">
-            <p>Every textbook we stock, shelved the way it is in the shop. Point at or tap a spine to see the price and open the book.</p>
+            <p>Every textbook we stock, shelved the way it is in the shop.</p>
             <div class="tabs tabs--glass" role="tablist" id="room-tabs" aria-label="School stage">
               <button class="tab" role="tab" aria-selected="false" data-stage="early">Early years</button>
               <button class="tab" role="tab" aria-selected="true" data-stage="primary">Primary</button>
@@ -244,24 +245,6 @@ P['index.html'] = dict(page='home', title='Asif Books & Uniform | School books, 
             </div>
           </div>
           <div class="bookcase"><div class="bookcase__inner" id="room-case"></div></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section how">
-      <div class="wrap">
-        <div class="section-head reveal"><div><p class="kicker">How it works</p><h2 class="wsplit">From list to doorstep</h2><p>Most orders are packed the same day they come in.</p></div></div>
-        <div class="steps flow">
-          <span class="flow__line" aria-hidden="true"><i></i></span>
-          <div class="step reveal"><div class="step__num">1</div><h3>Choose school and class</h3><p>We load the full prescribed list. Untick books you already have or change quantities.</p></div>
-          <div class="step reveal" style="--i:1"><div class="step__num">2</div><h3>We pack, cover and label</h3><p>Every title is checked against the edition, then covered and name-labelled if you ask.</p></div>
-          <div class="step reveal" style="--i:2"><div class="step__num">3</div><h3>Delivered or ready to collect</h3><p>Delivery across Karachi in 1 to 2 days, or pick it up from the Gulshan store the same evening.</p></div>
-        </div>
-        <div class="numbers reveal" aria-label="The shop in numbers">
-          <div class="num"><b data-fig="books">0</b><span>Textbooks on our shelves</span></div>
-          <div class="num"><b data-fig="classes">0</b><span>Classes covered, Playgroup to Matric</span></div>
-          <div class="num"><b data-fig="schools">0</b><span>School lists ready to order</span></div>
-          <div class="num"><b data-fig="areas">0</b><span>Karachi areas we deliver to</span></div>
         </div>
       </div>
     </section>
@@ -522,5 +505,5 @@ P['404.html'] = dict(page='notfound', title='Page not found | Asif Books &amp; U
     </div>''')
 
 for f, d in P.items():
-    open(os.path.join(root, f), 'w', encoding='utf8').write(HEAD.format(**d))
+    open(os.path.join(root, f), 'w', encoding='utf8').write(HEAD.format(ver=VER, **d))
 print('wrote', len(P), 'pages')

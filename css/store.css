@@ -2819,3 +2819,43 @@ html.intro-on body::before { content: ""; position: fixed; inset: 0; z-index: 99
   .eta { flex-wrap: wrap; }
   .eta #eta-val { flex-basis: 100%; }
 }
+
+
+/* ==========================================================================
+   Round 19: iPhone and iPad (Safari) hardening
+   ========================================================================== */
+/* Safari before 15.4 has no svh unit, which left the hero with no height */
+@supports not (height: 100svh) {
+  .cine__slides { height: clamp(640px, calc(100vh - 96px), 760px); }
+  @media (max-width: 860px) { .cine { --ch: clamp(640px, calc(100vh - 96px), 760px); } }
+  @media (max-width: 560px) { .cine { --ch: clamp(540px, calc(100vh - 176px), 720px); } }
+}
+/* Safari 14 has no aspect-ratio, which left product photos with no height */
+@supports not (aspect-ratio: 1 / 1) {
+  .card__media { height: 0; padding-top: 100%; }
+  .card__media > .card__art { position: absolute; left: 0; top: 0; }
+  .grid.is-list .card__media { height: auto; padding-top: 0; min-height: 132px; }
+  .grid.is-list .card__media > .card__art { position: static; }
+}
+/* phones: no mask and no blurred backdrop on the clip (both are costly on iOS); soft edges come from a plain overlay */
+@media (max-width: 860px) {
+  .cslide--video .film__bg { display: none; }
+  .cslide--video .cslide__film { background: #07060a; }
+  .cslide__film video.film__main { -webkit-mask-image: none; mask-image: none; }
+  .cslide--video .cslide__film::after { content: ""; position: absolute; left: 0; right: 0; top: 16%; height: 57%; pointer-events: none;
+    background: linear-gradient(180deg, #07060a 0, rgba(7, 6, 10, 0) 16%, rgba(7, 6, 10, 0) 84%, #07060a 100%); }
+}
+/* the clip never shows iOS's own play button or controls */
+.cslide__film video::-webkit-media-controls, .cslide__film video::-webkit-media-controls-start-playback-button { display: none !important; -webkit-appearance: none; }
+/* iOS: stop the tap flash and text inflation, keep fixed bars clear of the home indicator */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+a, button, [role="tab"], label, summary { -webkit-tap-highlight-color: transparent; }
+@supports (padding: env(safe-area-inset-bottom)) {
+  @media (max-width: 760px) { .tabbar { bottom: calc(10px + env(safe-area-inset-bottom)); } }
+}
+/* iOS zooms the page when a field's text is under 16px */
+@media (max-width: 860px) { input, select, textarea { font-size: 16px; } }
+
+/* gallery bar holds only the Look inside button now */
+.gallery__bar { justify-content: flex-end; }
+.gallery__bar:empty { display: none; }

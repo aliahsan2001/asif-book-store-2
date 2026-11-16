@@ -14,7 +14,7 @@ then visit http://localhost:5520. `serve.py` is a plain static server that also 
 
 | File | What it does |
 | --- | --- |
-| `index.html` | Home: swipeable cinematic hero with four scenes (Books & Novels, Uniforms, Stationery, Textbooks), two-panel school-kit finder, scroll-linked school names, the four counters as glass tabs, bundle builder, a Best sellers / Shelves by class switch, how-it-works steps with catalogue figures, store visit, email sign-up |
+| `index.html` | Home: swipeable cinematic hero with four scenes (Books & Novels, Uniforms, Stationery, Textbooks), two-panel school-kit finder, scroll-linked school names, the four counters as glass tabs, bundle builder, a Best sellers / Shelves by class switch, store visit, email sign-up |
 | `school-lists.html` | Pick school + class, tick/untick items, covering and name-label add-ons, add all to cart, save the list to the account |
 | `shop.html` | Catalogue with department, class, school, price and offer filters, search, sort |
 | `product.html?id=…` | Gallery (drag-to-turn 3D book, front/spine/back views, crest close-up for uniforms), flip-open "look inside", sizes, delivery estimate by area, tabs, often bought together, recently viewed |
@@ -81,6 +81,12 @@ Other photos are free-licence images from Unsplash, loaded from Unsplash's image
 ## Editing the pages
 
 The HTML pages are generated. Edit the templates in `tools/build_pages.py`, then run `python tools/build_pages.py .` from this folder to rewrite all 15 pages. Editing an `.html` file directly works too, but the next rebuild overwrites it.
+
+## iPhone and iPad notes
+
+- Every build stamps the CSS and JS links with a version (`store.css?v=…`), and `vercel.json` tells browsers to re-check pages, CSS and JS on each visit. After changing `css/` or `js/`, run `python tools/build_pages.py .` before deploying so phones pick up the new files.
+- On touch devices the hero keeps one clip loaded at a time and releases the others. If the phone refuses autoplay (Low Power Mode), the scene shows a finished still (`assets/hero/*-still.jpg`) and starts playing on the first touch.
+- The clips are H.264 MP4 with the index at the front of the file, which Safari needs to start them quickly. New clips should be exported the same way ("fast start" / "web optimised").
 
 ## Going live
 
